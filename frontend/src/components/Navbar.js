@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // <-- Important! // Optional if you have custom styles
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -10,11 +12,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg bg-body-tertiary">
-      <div className="container-fluid">
-        <a className="navbar-brand" href="/">
-          StudyHub
-        </a>
+    <nav className="navbar navbar-expand-lg sticky-top bg-gray shadow-sm">
+      <div className="container-fluid d-flex align-items-center">
+        <Link className="navbar-brand" to="/">
+          <img src="/studyhub_logo.png" alt="StudyHub Logo" height="50" />
+        </Link>
+
         <button
           className="navbar-toggler"
           type="button"
@@ -25,70 +28,78 @@ const Navbar = () => {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
+
         <div
           className={`collapse navbar-collapse${isOpen ? ' show' : ''}`}
           id="navbarSupportedContent"
         >
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+          <ul className="navbar-nav me-3 mb-2 mb-lg-0">
             <li className="nav-item">
-              <a className="nav-link active" aria-current="page" href="/">
+              <Link className="nav-link active" to="/">
                 Home
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/link">
-                Link
-              </a>
+              <Link className="nav-link" to="/team">
+                Team
+              </Link>
             </li>
             <li className="nav-item dropdown">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
-                id="navbarDropdown"
                 role="button"
                 onClick={toggleDropdown}
                 aria-expanded={dropdownOpen}
               >
-                Dropdown
+                Courses
               </a>
               <ul
                 className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}
                 aria-labelledby="navbarDropdown"
               >
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Action
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Another action
-                  </a>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Something else here
-                  </a>
-                </li>
+                {[
+                  'Artificial Intelligence',
+                  'Software Engineering',
+                  'Data Science',
+                  'Web Development',
+                  'Mobile Development',
+                  'Cloud Computing',
+                  'Cyber Security',
+                  'Blockchain',
+                  'Internet of Things',
+                  'Game Development',
+                  'DevOps',
+                  'Augmented Reality',
+                  'Virtual Reality',
+                  'More...',
+                ].map((course, index) =>
+                  course === 'Data Science' ? (
+                    <React.Fragment key={index}>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <a className="dropdown-item" href="#">
+                          {course}
+                        </a>
+                      </li>
+                    </React.Fragment>
+                  ) : (
+                    <li key={index}>
+                      <a className="dropdown-item" href="#">
+                        {course}
+                      </a>
+                    </li>
+                  )
+                )}
               </ul>
             </li>
-            <li className="nav-item">
-              <a
-                className="nav-link disabled"
-                href="#"
-                tabIndex="-1"
-                aria-disabled="true"
-              >
-                Disabled
-              </a>
-            </li>
           </ul>
+
+          {/* Centered Search */}
           <form
-            className="d-flex"
+            className="d-flex mx-auto"
             role="search"
+            style={{ maxWidth: '600px', width: '100%' }}
             onSubmit={(e) => e.preventDefault()}
           >
             <input
@@ -101,10 +112,24 @@ const Navbar = () => {
               Search
             </button>
           </form>
+
+          {/* Right-aligned */}
+          <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li className="nav-item">
+              <Link className="nav-link" to="/login">
+                Login
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/signup">
+                Sign Up
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
   );
 };
 
-export default Navbar;
+export default Navbar

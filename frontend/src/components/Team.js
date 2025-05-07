@@ -1,5 +1,5 @@
 import React from 'react';
-import '../App.css'; // Ensure Tailwind CSS is imported in App.css
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Team = () => {
   const teamMembers = [
@@ -20,31 +20,21 @@ const Team = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-b from-indigo-900 to-indigo-600 py-12 px-6 min-h-screen text-white">
-      <h1 className="text-4xl font-bold text-center mb-10">Meet Our Team</h1>
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-wrap justify-center gap-8">
-          {teamMembers.map((member, index) => (
-            <div
-              key={index}
-              className="bg-black text-black-900 rounded-xl shadow-lg overflow-hidden w-80 flex flex-col transform hover:scale-105 transition duration-300"
-            >
-              <div className="h-80 w-full overflow-hidden">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                  style={{ maxWidth: '400px', maxHeight: '400px' }}
-                />
-              </div>
-              <div className="p-6 flex-grow">
-                <h2 className="text-2xl font-bold mb-1">{member.name}</h2>
-                <p className="text-indigo-600 font-medium mb-3">{member.role}</p>
-                <p className="text-sm leading-relaxed">{member.description}</p>
+    <div className="container-fluid bg-light py-5">
+      <h1 className="text-center mb-5">Meet Our Team</h1>
+      <div className="row justify-content-center">
+        {teamMembers.map((member, index) => (
+          <div className="col-md-4 col-sm-6 mb-4 d-flex justify-content-center" key={index}>
+            <div className="card w-100" style={{ width: '60rem' }}>
+              <img src={member.image} className="card-img-top" alt={member.name} />
+              <div className="card-body">
+                <h5 className="card-title">{member.name}</h5>
+                <h6 className="card-subtitle mb-2 text-muted">{member.role}</h6>
+                <p className="card-text">{member.description}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

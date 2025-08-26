@@ -1,91 +1,86 @@
+// models/user.js
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // For password hashing
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { Schema } = mongoose;
 
+const REFRESH_TOKEN_EXPIRE_DAYS = 30;
+
 const userSchema = new Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-  },
+  name: { type: String, required: true, trim: true },
   email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/.+\@.+\..+/, 'Please fill a valid email address'],
+    type: String, required: true, unique: true, lowercase: true, trim: true,
+    match: [/.+\@.+\..+/, 'Please fill a valid email address']
   },
-  password: {
-    type: String,
-    // Required only if not using OAuth, or if you want a local password backup
-    // For pure OAuth, you might not store a password.
-    // For local auth + OAuth, this would be required for local signups.
-    // Let's assume local auth is an option.
-    required: function() { return !this.googleId && !this.facebookId; }, // Only required if no OAuth ID
-    select: false, // Don't send password back by default on queries
+  password: { type: String, select: false }, // only for local auth
+  role: { type: String, enum: ['student','instructor','admin'], default: 'student' },
+  avatar: { type: String, default: 'https://via.placeholder.com/150' },
+  providers: { // support multiple OAuth providers
+    google: { id: { type: String, index: true, sparse: true }, emailVerified: Boolean },
+    facebook: { id: { type: String, index: true, sparse: true }, emailVerified: Boolean }
   },
-  role: {
-    type: String,
-    enum: ['student', 'creator', 'admin'], // Added admin role
-    default: 'student',
-  },
-  avatar: { // URL to profile picture
-    type: String,
-    default: 'https://via.placeholder.com/150', // Default avatar
-  },
-  // OAuth provider IDs
-  googleId: {
-    type: String,
-    sparse: true, // Allows multiple nulls, but unique if value exists
-    unique: true,
-    default: null,
-  },
-  facebookId: { // Example, if you add Facebook login
-    type: String,
-    sparse: true,
-    unique: true,
-    default: null,
-  },
-  refreshToken: { // For JWT refresh strategy
-    type: String,
-    select: false, // Don't send by default
-  },
-  enrolledCourses: [{ // Courses the user is enrolled in (if student)
-    type: Schema.Types.ObjectId,
-    ref: 'Course',
+  refreshTokens: [{ // store hashed refresh tokens (for revocation)
+    tokenHash: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+    expiresAt: { type: Date }
   }],
-  createdCourses: [{ // Courses created by the user (if creator)
-    type: Schema.Types.ObjectId,
-    ref: 'Course',
+  enrolledCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+  createdCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+  notes: [{ // personal notes saved by student for courses
+    course: { type: Schema.Types.ObjectId, ref: 'Course' },
+    title: String,
+    markdown: String,
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: Date
   }],
-  // You might add more fields like bio, social links, etc.
-  lastLogin: {
-    type: Date,
+  emailVerified: { type: Boolean, default: false },
+  emailVerificationToken: { type: String, select: false },
+  passwordResetToken: { type: String, select: false },
+  lastLogin: Date,
+  preferences: {
+    theme: { type: String, enum: ['dark','light'], default: 'dark' },
+    notifications: { type: Boolean, default: true }
   }
-}, {
-  timestamps: true, // Adds createdAt and updatedAt timestamps
+}, { timestamps: true });
+
+// Hash password pre-save
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password') || !this.password) return next();
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-// Pre-save hook to hash password before saving (for local auth)
-userSchema.pre('save', async function (next) {
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password') || !this.password) {
-    return next();
-  }
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
+userSchema.methods.comparePassword = async function(plain) {
+  if (!this.password) return false;
+  return bcrypt.compare(plain, this.password);
+};
 
-// Method to compare entered password with hashed password (for local auth)
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  if (!this.password) return false; // If no password (e.g. OAuth user)
-  return await bcrypt.compare(enteredPassword, this.password);
+// generate JWT access token
+userSchema.methods.generateAccessToken = function() {
+  const payload = { sub: this._id, role: this.role };
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES || '15m' });
+};
+
+// store hashed refresh token
+userSchema.methods.addRefreshToken = async function(plainToken) {
+  const salt = await bcrypt.genSalt(10);
+  const tokenHash = await bcrypt.hash(plainToken, salt);
+  const expiresAt = new Date(Date.now() + (REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600 * 1000));
+  this.refreshTokens.push({ tokenHash, expiresAt });
+  await this.save();
+};
+
+// revoke a refresh token by comparing hashes
+userSchema.methods.revokeRefreshToken = async function(plainToken) {
+  const tokens = this.refreshTokens || [];
+  const keep = [];
+  for (let t of tokens) {
+    const ok = await bcrypt.compare(plainToken, t.tokenHash);
+    if (!ok) keep.push(t);
+  }
+  this.refreshTokens = keep;
+  await this.save();
 };
 
 const User = mongoose.model('User', userSchema);

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../App.css';
+
+const API_URL = "http://localhost:5000/api/auth"; // backend URL
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -17,104 +19,59 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState('');
-  
+
   const updateFormData = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Validate password as user types
-    if (name === 'password') {
-      validatePassword(value);
-    }
-    
-    // Clear individual field error when user types
+    setFormData(prev => ({ ...prev, [name]: value }));
+
     if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-  
-  const validatePassword = (password) => {
-    // Check password strength
-    let strength = 0;
-    const regexes = {
-      length: /.{5,}/,
-      upper: /[A-Z]/,
-      lower: /[a-z]/,
-      number: /[0-9]/,
-      special: /[^A-Za-z0-9]/
-    };
-    
-    Object.values(regexes).forEach(regex => {
-      if (regex.test(password)) strength++;
-    });
-    
-    let strengthText = '';
-    let strengthColor = '';
-    
-    if (strength < 2) {
-      strengthText = 'Weak';
-      strengthColor = 'text-danger';
-    } else if (strength < 4) {
-      strengthText = 'Medium';
-      strengthColor = 'text-warning';
-    } else {
-      strengthText = 'Strong';
-      strengthColor = 'text-success';
-    }
-    
-    setPasswordStrength({ text: strengthText, color: strengthColor });
-  };
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Form validation
+
     const errors = {};
-    
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required';
-    }
-    
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Please enter a valid email';
-    }
-    
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    } else if (formData.password.length < 5) {
-      errors.password = 'Password must be at least 5 characters long';
-    } else if (!/[a-zA-Z]/.test(formData.password) || !/[0-9]/.test(formData.password) || !/[^a-zA-Z0-9]/.test(formData.password)) {
-      errors.password = 'Password must include letters, numbers, and special characters';
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-    
+    if (!formData.name.trim()) errors.name = 'Name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    if (!formData.password) errors.password = 'Password is required';
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       setLoading(false);
       return;
     }
-    
-    // Here you would normally submit to your backend
-    setTimeout(() => {
-      toast.success('Account created successfully! You can now log in.');
+
+    try {
+      const res = await fetch(`${API_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+
+      // Save JWT token
+      localStorage.setItem('token', data.token);
+
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
       setLoading(false);
-      navigate('/dashboard'); // Redirect to dashboard or login
-    }, 1500);
+    }
   };
-  
+
   return (
     <div className="signup-container py-5">
       <div className="container">
@@ -126,11 +83,10 @@ const Signup = () => {
               </div>
               <div className="card-body p-4">
                 <form onSubmit={handleSubmit}>
-                  {/* Name Field */}
+                  {/* Name */}
                   <div className="mb-3">
                     <label htmlFor="name" className="form-label">
-                      <FaUser className="me-2" />
-                      Full Name
+                      <FaUser className="me-2" /> Full Name
                     </label>
                     <input
                       type="text"
@@ -142,16 +98,13 @@ const Signup = () => {
                       placeholder="Enter your name"
                       required
                     />
-                    {formErrors.name && (
-                      <div className="invalid-feedback">{formErrors.name}</div>
-                    )}
+                    {formErrors.name && <div className="invalid-feedback">{formErrors.name}</div>}
                   </div>
-                  
-                  {/* Email Field */}
+
+                  {/* Email */}
                   <div className="mb-3">
                     <label htmlFor="email" className="form-label">
-                      <FaEnvelope className="me-2" />
-                      Email Address
+                      <FaEnvelope className="me-2" /> Email Address
                     </label>
                     <input
                       type="email"
@@ -163,16 +116,13 @@ const Signup = () => {
                       placeholder="you@example.com"
                       required
                     />
-                    {formErrors.email && (
-                      <div className="invalid-feedback">{formErrors.email}</div>
-                    )}
+                    {formErrors.email && <div className="invalid-feedback">{formErrors.email}</div>}
                   </div>
-                  
-                  {/* Password Field */}
+
+                  {/* Password */}
                   <div className="mb-3">
                     <label htmlFor="password" className="form-label">
-                      <FaLock className="me-2" />
-                      Password
+                      <FaLock className="me-2" /> Password
                     </label>
                     <div className="input-group">
                       <input
@@ -182,7 +132,7 @@ const Signup = () => {
                         name="password"
                         value={formData.password}
                         onChange={updateFormData}
-                        placeholder="Create a strong password"
+                        placeholder="Create a password"
                         required
                       />
                       <button
@@ -193,21 +143,13 @@ const Signup = () => {
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
-                    {passwordStrength && (
-                      <div className={`mt-1 ${passwordStrength.color}`}>
-                        Password strength: {passwordStrength.text}
-                      </div>
-                    )}
-                    {formErrors.password && (
-                      <div className="text-danger">{formErrors.password}</div>
-                    )}
+                    {formErrors.password && <div className="text-danger">{formErrors.password}</div>}
                   </div>
-                  
-                  {/* Confirm Password Field */}
+
+                  {/* Confirm Password */}
                   <div className="mb-4">
                     <label htmlFor="confirmPassword" className="form-label">
-                      <FaLock className="me-2" />
-                      Confirm Password
+                      <FaLock className="me-2" /> Confirm Password
                     </label>
                     <div className="input-group">
                       <input
@@ -217,7 +159,7 @@ const Signup = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={updateFormData}
-                        placeholder="Confirm your password"
+                        placeholder="Confirm password"
                         required
                       />
                       <button
@@ -228,29 +170,19 @@ const Signup = () => {
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
-                    {formErrors.confirmPassword && (
-                      <div className="text-danger">{formErrors.confirmPassword}</div>
-                    )}
+                    {formErrors.confirmPassword && <div className="text-danger">{formErrors.confirmPassword}</div>}
                   </div>
-                  
-                  {/* Submit Button */}
+
+                  {/* Submit */}
                   <div className="d-grid gap-2">
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary py-2" 
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <span>Creating your account...</span>
-                      ) : (
-                        <span>Sign Up</span>
-                      )}
+                    <button type="submit" className="btn btn-primary py-2" disabled={loading}>
+                      {loading ? 'Creating...' : 'Sign Up'}
                     </button>
                   </div>
-                  
-                  {/* Login Link */}
+
+                  {/* Login link */}
                   <div className="text-center mt-3">
-                    <p>Already have an account? <a href="#" className="text-primary">Log in</a></p>
+                    <p>Already have an account? <a href="/login" className="text-primary">Log in</a></p>
                   </div>
                 </form>
               </div>

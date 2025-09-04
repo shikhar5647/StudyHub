@@ -5,48 +5,28 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../App.css';
 
+const API_URL = "http://localhost:5000/api/auth"; // backend URL
+
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const updateFormData = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Clear individual field error when user types
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Form validation
     const errors = {};
-
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Please enter a valid email';
-    }
-
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    }
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    if (!formData.password) errors.password = 'Password is required';
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -54,12 +34,26 @@ const Login = () => {
       return;
     }
 
-    // Here you would normally submit to your backend
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+
+      localStorage.setItem('token', data.token);
+
       toast.success('Logged in successfully!');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
       setLoading(false);
-      navigate('/dashboard'); // Redirect to dashboard or home page
-    }, 1500);
+    }
   };
 
   return (
@@ -71,11 +65,10 @@ const Login = () => {
           </div>
           <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
-              {/* Email Field */}
+              {/* Email */}
               <div className="mb-3">
                 <label htmlFor="email" className="form-label">
-                  <FaEnvelope className="me-2" />
-                  Email Address
+                  <FaEnvelope className="me-2" /> Email Address
                 </label>
                 <input
                   type="email"
@@ -87,16 +80,13 @@ const Login = () => {
                   placeholder="you@example.com"
                   required
                 />
-                {formErrors.email && (
-                  <div className="invalid-feedback">{formErrors.email}</div>
-                )}
+                {formErrors.email && <div className="invalid-feedback">{formErrors.email}</div>}
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">
-                  <FaLock className="me-2" />
-                  Password
+                  <FaLock className="me-2" /> Password
                 </label>
                 <div className="input-group">
                   <input
@@ -117,27 +107,17 @@ const Login = () => {
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
-                {formErrors.password && (
-                  <div className="text-danger">{formErrors.password}</div>
-                )}
+                {formErrors.password && <div className="text-danger">{formErrors.password}</div>}
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <div className="d-grid gap-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary py-2"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <span>Logging you in...</span>
-                  ) : (
-                    <span>Log In</span>
-                  )}
+                <button type="submit" className="btn btn-primary py-2" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Log In'}
                 </button>
               </div>
 
-              {/* Sign Up Link */}
+              {/* Signup link */}
               <div className="text-left mt-3">
                 <p>Don't have an account? <a href="/signup" className="text-primary">Sign up</a></p>
               </div>
@@ -150,3 +130,4 @@ const Login = () => {
 };
 
 export default Login;
+

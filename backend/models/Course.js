@@ -1,124 +1,80 @@
+// models/course.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const slugify = require('slugify');
 
-// Sub-schema for modules within a course
+const lessonSchema = new Schema({
+  title: { type: String, required: true, trim: true },
+  type: { type: String, enum: ['video','note','assignment','quiz'], required: true },
+  // content metadata (store storage keys, external ids)
+  content: {
+    // for youtube: { provider: 'youtube', videoId: 'abc' }
+    // for uploaded file: { provider: 's3', key: 'uploads/course123/lesson1.mp4', mimeType: 'video/mp4', size: 12345 }
+    provider: { type: String, enum: ['youtube','s3','inline'], required: true },
+    url: String, // canonical URL or embed URL
+    s3Key: String, // S3 key if uploaded
+    markdown: String, // inline notes
+    durationSec: Number,
+    previewImage: String
+  },
+  order: { type: Number, required: true },
+  isPreviewable: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const moduleSchema = new Schema({
-  title: {
-    type: String,
-    required: [true, 'Module title is required'],
-    trim: true,
-  },
-  description: { // Brief description of the module
-    type: String,
-    trim: true,
-  },
-  order: { // To maintain the order of modules
-    type: Number,
-    required: true,
-  },
-  lessons: [{
-    title: {
-      type: String,
-      required: [true, 'Lesson title is required'],
-      trim: true,
-    },
-    type: { // 'video', 'note' (PDF/MD), 'quiz', 'assignment'
-      type: String,
-      enum: ['video', 'note', 'quiz', 'assignment'],
-      required: [true, 'Lesson type is required'],
-    },
-    contentUrl: { // URL to YouTube video, PDF on S3, etc.
-      type: String,
-      // Required if type is 'video' or 'note' (for external files)
-      required: function() { return this.type === 'video' || (this.type === 'note' && !this.markdownContent); }
-    },
-    markdownContent: { // For inline Markdown notes
-        type: String,
-        // Required if type is 'note' and no contentUrl is provided
-        required: function() { return this.type === 'note' && !this.contentUrl; }
-    },
-    quizId: { // Reference to a Quiz model (if type is 'quiz')
-        type: Schema.Types.ObjectId,
-        ref: 'Quiz', // You'll need to create a Quiz model
-        // Required if type is 'quiz'
-        required: function() { return this.type === 'quiz'; }
-    },
-    duration: { // Optional: estimated time to complete lesson (e.g., in minutes or as a string "15 mins")
-        type: String,
-    },
-    // You can add more fields like 'isPreviewable' for lessons
-  }],
+  title: { type: String, required: true },
+  description: String,
+  order: { type: Number, required: true },
+  lessons: [lessonSchema]
 });
 
 const courseSchema = new Schema({
-  title: {
-    type: String,
-    required: [true, 'Course title is required'],
-    trim: true,
-    unique: true, // Assuming course titles should be unique
-  },
-  description: {
-    type: String,
-    required: [true, 'Course description is required'],
-    trim: true,
-  },
-  category: { // E.g., 'Web Development', 'Data Science'
-    type: String,
-    required: [true, 'Category is required'],
-    trim: true,
-  },
-  level: { // E.g., 'Beginner', 'Intermediate', 'Advanced'
-    type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
-    default: 'All Levels',
-  },
-  creator: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  thumbnailUrl: { // URL to the course thumbnail image (stored on S3)
-    type: String,
-    default: 'https://via.placeholder.com/300x200?text=Course+Thumbnail',
-  },
-  price: {
-    type: Number,
-    required: [true, 'Price is required'],
-    default: 0, // Can be 0 for free courses
-  },
-  tags: [String], // For better searchability
-  published: { // Whether the course is visible to students
-    type: Boolean,
-    default: false,
-  },
+  title: { type: String, required: true, trim: true },
+  slug: { type: String, index: true, unique: true },
+  description: { type: String, required: true },
+  category: { type: String },
+  level: { type: String, enum: ['Beginner','Intermediate','Advanced','All Levels'], default: 'All Levels' },
+  instructor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  thumbnail: { type: String },
+  price: { type: Number, default: 0 },
+  tags: [String],
+  published: { type: Boolean, default: false },
   modules: [moduleSchema],
-  enrolledStudents: [{ // List of students enrolled in this course
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  }],
-  // You might add ratings, reviews, prerequisites, etc.
-  averageRating: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 5,
+  enrolledCount: { type: Number, default: 0 },
+  ratings: {
+    avg: { type: Number, default: 0 },
+    total: { type: Number, default: 0 }
   },
-  totalRatings: {
-    type: Number,
-    default: 0,
-  },
-  // If you have a separate Review model:
-  // reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }]
-}, {
-  timestamps: true,
+  metadata: { // analytics-friendly
+    totalLessons: { type: Number, default: 0 },
+    totalDurationSec: { type: Number, default: 0 }
+  }
+}, { timestamps: true });
+
+// middleware to set slug & metadata
+courseSchema.pre('validate', function(next) {
+  if (!this.slug && this.title) {
+    this.slug = slugify(this.title, { lower: true, strict: true });
+  }
+  // compute some metadata
+  let total = 0;
+  let dur = 0;
+  if (this.modules && this.modules.length) {
+    this.modules.forEach(m => {
+      if (m.lessons) {
+        total += m.lessons.length;
+        m.lessons.forEach(l => { if (l.content && l.content.durationSec) dur += l.content.durationSec; });
+      }
+    });
+  }
+  this.metadata.totalLessons = total;
+  this.metadata.totalDurationSec = dur;
+  next();
 });
 
-// Indexing for better query performance
-courseSchema.index({ title: 'text', description: 'text', category: 'text', tags: 'text' }); // For text search
-courseSchema.index({ category: 1 });
-courseSchema.index({ creator: 1 });
-courseSchema.index({ price: 1 });
-
+// text index for search
+courseSchema.index({ title: 'text', description: 'text', tags: 'text', category: 'text' });
 
 const Course = mongoose.model('Course', courseSchema);
 module.exports = Course;

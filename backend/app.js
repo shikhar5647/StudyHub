@@ -1,14 +1,23 @@
 // backend/app.js
-const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();             // ✅ load .env first
+const express = require('express');
+// const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const passport = require('./config/passport');
+const passport = require('passport');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 
-dotenv.config();
+
+// const passport = require('passport');
+require('./config/passport')(passport); // call the function and pass passport
+
+
+             // register Google strategy
+
+// dotenv.config();
 const app = express();
 
 // Security middleware

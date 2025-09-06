@@ -1,7 +1,8 @@
 // backend/server.js
+require('dotenv').config(); // ✅ MUST be first
+
 const connectDB = require('./db');
 const app = require('./app');
-require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
 

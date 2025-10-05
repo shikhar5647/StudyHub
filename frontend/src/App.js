@@ -5,6 +5,7 @@ import Home from './components/Home';
 import Team from './components/Team';
 import Signup from './components/Signup';
 import Login from './components/Login';
+import StorageManager from './components/StorageManager';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
             <Route path="/team" element={<Team />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/storage" element={<StorageManager />} />
           </Routes>
         </main>
       </div>

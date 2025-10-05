@@ -2,12 +2,13 @@ const dotenv = require('dotenv');
 dotenv.config();             // ✅ load .env first
 const express = require('express');
 const session = require('express-session');
-const cors = require('cors');
+const cors = require('cors');    
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
+const storageRoutes = require('./routes/storage');
 
 require('./config/passport')(passport); // call the function and pass passport
 
@@ -47,6 +48,7 @@ app.use(passport.session()); // ✅ needed for session support
 
 // ---------------- Routes ----------------
 app.use('/api/auth', authRoutes);
+app.use('/api/storage', storageRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -126,13 +126,9 @@ const login = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .populate('enrolledCourses', 'title description')
-    .populate('createdCourses', 'title description');
-
   res.status(200).json({
     success: true,
-    data: user
+    data: req.user
   });
 });
 

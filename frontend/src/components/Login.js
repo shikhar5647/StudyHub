@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../App.css';
 
-const API_URL = "http://localhost:5000/api/auth"; // backend URL
+import { AUTH_API } from '../config/api';
+import { saveAuthSession } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${AUTH_API}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -45,7 +46,7 @@ const Login = () => {
 
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      localStorage.setItem('token', data.token);
+      saveAuthSession(data.data);
 
       toast.success('Logged in successfully!');
       navigate('/dashboard');

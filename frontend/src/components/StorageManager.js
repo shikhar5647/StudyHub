@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { uploadCourseFile, listCourseFiles, signCourseFile, deleteCourseFile } from '../api/storage';
+import { getAccessToken } from '../utils/auth';
 
 function StorageManager() {
-  const [accessToken, setAccessToken] = useState('');
+  const [accessToken, setAccessToken] = useState(() => getAccessToken() || '');
   const [courseSlug, setCourseSlug] = useState('demo-course');
   const [prefix, setPrefix] = useState('');
   const [files, setFiles] = useState([]);

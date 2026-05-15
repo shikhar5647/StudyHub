@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../App.css';
 
-const API_URL = "http://localhost:5000/api/auth"; // backend URL
+import { AUTH_API } from '../config/api';
+import { saveAuthSession } from '../utils/auth';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/signup`, {
+      const res = await fetch(`${AUTH_API}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,8 +61,7 @@ const Signup = () => {
 
       if (!res.ok) throw new Error(data.message || 'Signup failed');
 
-      // Save JWT token
-      localStorage.setItem('token', data.token);
+      saveAuthSession(data.data);
 
       toast.success('Account created successfully!');
       navigate('/dashboard');

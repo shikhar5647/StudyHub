@@ -68,6 +68,7 @@ courseSchema.pre('validate', function(next) {
       }
     });
   }
+  if (!this.metadata) this.metadata = {};
   this.metadata.totalLessons = total;
   this.metadata.totalDurationSec = dur;
   next();

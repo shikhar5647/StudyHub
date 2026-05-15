@@ -7,6 +7,7 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import GoogleSignInButton from './GoogleSignInButton';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -179,6 +180,15 @@ const Signup = () => {
                       {loading ? 'Creating...' : 'Sign Up'}
                     </button>
                   </div>
+
+                  <div className="position-relative my-4 text-center">
+                    <hr />
+                    <span className="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                      or
+                    </span>
+                  </div>
+
+                  <GoogleSignInButton label="Sign up with Google" />
 
                   {/* Login link */}
                   <div className="text-center mt-3">

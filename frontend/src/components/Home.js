@@ -1,7 +1,9 @@
 import React from 'react';
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaRocket, FaLaptopCode, FaBookOpen, FaQuoteLeft, FaQuoteRight } from 'react-icons/fa';
+import { FaRocket, FaLaptopCode, FaQuoteLeft, FaQuoteRight } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import HomeCourses from './HomeCourses';
 
 const Home = () => {
   // Educational quotes
@@ -17,82 +19,6 @@ const Home = () => {
     {
       text: "Education is not the filling of a pail, but the lighting of a fire.",
       author: "W.B. Yeats"
-    }
-  ];
-
-  // Course categories with improved images and styling
-  const courses = [
-    {
-      title: 'Artificial Intelligence',
-      description: 'Learn about machine learning, neural networks, and more.',
-      image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
-      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-    },
-    {
-      title: 'Web Development',
-      description: 'Master HTML, CSS, JavaScript, and modern frameworks.',
-      image: 'https://images.unsplash.com/photo-1547658719-da2b51169166',
-      color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-    },
-    {
-      title: 'Cyber Security',
-      description: 'Understand network security and ethical hacking.',
-      image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3',
-      color: 'linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)'
-    },
-    {
-      title: 'Data Science',
-      description: 'Analyze data and build predictive models with Python.',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-    },
-    {
-      title: 'Cloud Computing',
-      description: 'Explore cloud services and infrastructure.',
-      image: 'https://images.unsplash.com/photo-1603732551658-5fabbafa84eb',
-      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-    },
-    {
-      title: 'Game Development',
-      description: 'Create engaging games using Unity and Unreal Engine.',
-      image: 'https://images.unsplash.com/photo-1556438064-2d7646166914',
-      color: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)'
-    },
-    {
-      title: 'Mobile Development',
-      description: 'Build apps for iOS and Android platforms.',
-      image: 'https://images.unsplash.com/photo-1596742578443-7682ef5251cd',
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    },
-    {
-      title: 'Blockchain Technology',
-      description: 'Learn about cryptocurrencies and decentralized applications.',
-      image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a',
-      color: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)'
-    },
-    {
-      title: 'DevOps',
-      description: 'Integrate development and operations for better software delivery.',
-      image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb',
-      color: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)'
-    },
-    {
-      title: 'Augmented Reality',
-      description: 'Create immersive experiences with AR technology.',
-      image: 'https://images.unsplash.com/photo-1595113316349-9fa4eb24f884',
-      color: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)'
-    },
-    {
-      title: 'Virtual Reality',
-      description: 'Explore the world of VR and create your own applications.',
-      image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac',
-      color: 'linear-gradient(135deg, #7028e4 0%, #e5b2ca 100%)'
-    },
-    {
-      title: 'Internet of Things',
-      description: 'Connect devices and create smart solutions.',
-      image: 'https://images.unsplash.com/photo-1518770660439-4636190af475',
-      color: 'linear-gradient(135deg, #0fd850 0%, #f9f047 100%)'
     }
   ];
 
@@ -121,18 +47,24 @@ const Home = () => {
                   Your ultimate platform for online learning and content creation.
                   Join us to learn from the best courses or create your own educational content.
                 </p>
-                <div className="d-flex gap-3">
-                  <button className="btn btn-light btn-lg px-4 py-2" style={{ 
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                    transition: 'all 0.3s ease'
-                  }}>
+                <div className="d-flex gap-3 flex-wrap">
+                  <Link
+                    to="/courses"
+                    className="btn btn-light btn-lg px-4 py-2"
+                    style={{
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
                     <FaRocket className="me-2" /> Explore Courses
-                  </button>
-                  <button className="btn btn-outline-light btn-lg px-4 py-2" style={{ 
-                    transition: 'all 0.3s ease'
-                  }}>
-                    <FaLaptopCode className="me-2" /> Start Creating
-                  </button>
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="btn btn-outline-light btn-lg px-4 py-2"
+                    style={{ transition: 'all 0.3s ease' }}
+                  >
+                    <FaLaptopCode className="me-2" /> Get Started
+                  </Link>
                 </div>
               </div>
             </div>
@@ -210,56 +142,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Course Section with improved cards */}
-      <div className="course-section py-5" style={{ background: '#f8f9fa' }}>
-        <div className="container">
-          <div className="section-heading text-center mb-5">
-            <FaBookOpen size={40} className="text-primary mb-3" />
-            <h2 className="display-5 fw-bold">Explore Our Courses</h2>
-            <div className="title-underline mx-auto mb-4" style={{
-              width: '80px',
-              height: '4px',
-              background: 'linear-gradient(to right, #6a11cb, #2575fc)'
-            }}></div>
-            <p className="lead text-muted">
-              Discover a wide range of courses designed to help you learn and grow.
-              Whether you're a beginner or an expert, we have something for everyone.
-            </p>
-          </div>
-          
-          <div className="row g-4">
-            {courses.map((course, index) => (
-              <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={index}>
-                <div className="card h-100 border-0 shadow-sm" style={{ 
-                  borderRadius: '12px', 
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{ height: '180px', overflow: 'hidden' }}>
-                    <div style={{ 
-                      height: '100%', 
-                      background: course.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <h5 className="text-white text-center px-3">{course.title}</h5>
-                    </div>
-                  </div>
-                  <div className="card-body">
-                    <p className="card-text">{course.description}</p>
-                    <a href="#" className="btn btn-sm btn-primary w-100" style={{
-                      borderRadius: '6px',
-                      background: course.color,
-                      border: 'none'
-                    }}>Learn More</a>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <HomeCourses />
+
 
       {/* Features Section */}
       <div className="features-section py-5" style={{ 

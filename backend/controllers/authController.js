@@ -1,8 +1,13 @@
 // backend/controllers/authController.js
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const asyncHandler = require('../middleware/asyncHandler');
+const { issueAuthTokens } = require('../utils/issueAuthTokens');
+const { googleOAuthEnabled } = require('../config/passport');
+
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || 'http://localhost:3001';
+}
 
 
 // @desc    Register user
@@ -43,27 +48,12 @@ const signup = asyncHandler(async (req, res) => {
     role
   });
 
-  // Generate tokens
-  const accessToken = user.generateAccessToken();
-  const refreshToken = crypto.randomBytes(40).toString('hex');
-  await user.addRefreshToken(refreshToken);
-
-  // Update last login
-  user.lastLogin = new Date();
-  await user.save();
-
-  // Remove password from response
-  const userResponse = user.toObject();
-  delete userResponse.password;
+  const tokens = await issueAuthTokens(user);
 
   res.status(201).json({
     success: true,
     message: 'User registered successfully',
-    data: {
-      user: userResponse,
-      accessToken,
-      refreshToken
-    }
+    data: tokens
   });
 });
 
@@ -90,6 +80,13 @@ const login = asyncHandler(async (req, res) => {
     });
   }
 
+  if (!user.password) {
+    return res.status(401).json({
+      success: false,
+      message: 'This account uses Google sign-in. Please continue with Google.'
+    });
+  }
+
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
     return res.status(401).json({
@@ -98,27 +95,12 @@ const login = asyncHandler(async (req, res) => {
     });
   }
 
-  // Generate tokens
-  const accessToken = user.generateAccessToken();
-  const refreshToken = crypto.randomBytes(40).toString('hex');
-  await user.addRefreshToken(refreshToken);
-
-  // Update last login
-  user.lastLogin = new Date();
-  await user.save();
-
-  // Remove password from response
-  const userResponse = user.toObject();
-  delete userResponse.password;
+  const tokens = await issueAuthTokens(user);
 
   res.status(200).json({
     success: true,
     message: 'Login successful',
-    data: {
-      user: userResponse,
-      accessToken,
-      refreshToken
-    }
+    data: tokens
   });
 });
 
@@ -194,10 +176,32 @@ const logout = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Google OAuth callback — issue JWT and redirect to frontend
+// @route   GET /api/auth/google/callback
+const googleCallback = asyncHandler(async (req, res) => {
+  const frontend = getFrontendUrl();
+  const tokens = await issueAuthTokens(req.user);
+  const url = new URL(`${frontend}/auth/callback`);
+  url.searchParams.set('accessToken', tokens.accessToken);
+  url.searchParams.set('refreshToken', tokens.refreshToken);
+  res.redirect(url.toString());
+});
+
+const getGoogleAuthStatus = (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      enabled: googleOAuthEnabled(),
+    },
+  });
+};
+
 module.exports = {
   signup,
   login,
   getMe,
   refreshToken,
-  logout
+  logout,
+  googleCallback,
+  getGoogleAuthStatus,
 };

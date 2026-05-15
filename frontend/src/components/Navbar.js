@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { listCourses } from '../api/courses';
+import { getAccessToken } from '../utils/auth';
 import Signup from './Signup';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [courseLinks, setCourseLinks] = useState([]);
+  const isLoggedIn = Boolean(getAccessToken());
+
+  useEffect(() => {
+    listCourses()
+      .then((res) => setCourseLinks((res.data || []).slice(0, 8)))
+      .catch(() => setCourseLinks([]));
+  }, []);
 
   const toggleNavbar = () => setIsOpen(!isOpen);
   const toggleDropdown = (e) => {
@@ -43,8 +53,13 @@ const Navbar = () => {
           >
             <ul className="navbar-nav me-3 mb-2 mb-lg-0">
               <li className="nav-item">
-                <Link className="nav-link active" to="/">
+                <Link className="nav-link" to="/">
                   Home
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/courses">
+                  Courses
                 </Link>
               </li>
               <li className="nav-item">
@@ -53,57 +68,42 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  type="button"
+                  className="nav-link dropdown-toggle btn btn-link"
                   onClick={toggleDropdown}
                   aria-expanded={dropdownOpen}
+                  style={{ textDecoration: 'none' }}
                 >
-                  Courses
-                </a>
-                <ul
-                  className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}
-                  aria-labelledby="navbarDropdown"
-                >
-                  {[
-                    'Artificial Intelligence',
-                    'Software Engineering',
-                    'Data Science',
-                    'Web Development',
-                    'Mobile Development',
-                    'Cloud Computing',
-                    'Cyber Security',
-                    'Blockchain',
-                    'Internet of Things',
-                    'Game Development',
-                    'DevOps',
-                    'Augmented Reality',
-                    'Virtual Reality',
-                    'More...',
-                  ].map((course, index) =>
-                    course === 'Data Science' ? (
-                      <React.Fragment key={index}>
-                        <li><hr className="dropdown-divider" /></li>
-                        <li>
-                          <a className="dropdown-item" href="#">
-                            {course}
-                          </a>
-                        </li>
-                      </React.Fragment>
-                    ) : (
-                      <li key={index}>
-                        <a className="dropdown-item" href="#">
-                          {course}
-                        </a>
-                      </li>
-                    )
+                  Browse
+                </button>
+                <ul className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}>
+                  {courseLinks.length === 0 && (
+                    <li>
+                      <span className="dropdown-item text-muted">Loading…</span>
+                    </li>
                   )}
+                  {courseLinks.map((course) => (
+                    <li key={course._id}>
+                      <Link
+                        className="dropdown-item"
+                        to={`/courses/${course.slug}`}
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        {course.title}
+                      </Link>
+                    </li>
+                  ))}
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <Link className="dropdown-item" to="/courses">
+                      View all courses
+                    </Link>
+                  </li>
                 </ul>
               </li>
             </ul>
 
-            {/* Centered Search */}
             <form
               className="d-flex mx-auto"
               role="search"
@@ -113,40 +113,47 @@ const Navbar = () => {
               <input
                 className="form-control me-2"
                 type="search"
-                placeholder="Search"
+                placeholder="Search on courses page"
                 aria-label="Search"
+                onFocus={() => window.location.assign('/courses')}
               />
-              <button className="btn btn-outline-success" type="submit">
-                Search
-              </button>
             </form>
 
-            {/* Right-aligned */}
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <Link className="nav-link" to="/login">
-                  Login
-                </Link>
-              </li>
-              <li className="nav-item">
-                <button
-                  className="nav-link btn btn-link"
-                  onClick={openSignup}
-                  style={{ textDecoration: 'none' }}
-                >
-                  Sign Up
-                </button>
-              </li>
+              {isLoggedIn ? (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/dashboard">
+                    Dashboard
+                  </Link>
+                </li>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/login">
+                      Login
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      type="button"
+                      className="nav-link btn btn-link"
+                      onClick={openSignup}
+                      style={{ textDecoration: 'none' }}
+                    >
+                      Sign Up
+                    </button>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>
       </nav>
 
-      {/* Render Signup Component as Modal or Inline */}
       {showSignup && (
         <div className="signup-overlay">
           <div className="signup-modal">
-            <button className="btn-close float-end" onClick={closeSignup}></button>
+            <button type="button" className="btn-close float-end" onClick={closeSignup} aria-label="Close" />
             <Signup />
           </div>
         </div>
@@ -156,4 +163,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

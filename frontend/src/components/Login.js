@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,13 +7,28 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import GoogleSignInButton from './GoogleSignInButton';
+
+const AUTH_ERRORS = {
+  google_auth_failed: 'Google sign-in was cancelled or failed.',
+  google_not_configured: 'Google sign-in is not configured on the server.',
+};
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const code = searchParams.get('error');
+    if (code && AUTH_ERRORS[code]) {
+      toast.error(AUTH_ERRORS[code]);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const updateFormData = (e) => {
     const { name, value } = e.target;
@@ -117,6 +132,15 @@ const Login = () => {
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
               </div>
+
+              <div className="position-relative my-4 text-center">
+                <hr />
+                <span className="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                  or
+                </span>
+              </div>
+
+              <GoogleSignInButton label="Sign in with Google" />
 
               {/* Signup link */}
               <div className="text-left mt-3">

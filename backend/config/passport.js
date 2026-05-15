@@ -1,21 +1,27 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
-module.exports = function(passport) {
-  // -------- Local Strategy --------
-  passport.use(
+function googleOAuthEnabled() {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+function configurePassport(passportInstance) {
+  passportInstance.use(
     new LocalStrategy(
-      { usernameField: "email" },
+      { usernameField: 'email' },
       async (email, password, done) => {
         try {
-          const user = await User.findOne({ email });
-          if (!user) return done(null, false, { message: "User not found" });
+          const user = await User.findOne({ email }).select('+password');
+          if (!user) return done(null, false, { message: 'User not found' });
+          if (!user.password) {
+            return done(null, false, { message: 'Use Google sign-in for this account' });
+          }
 
           const isMatch = await bcrypt.compare(password, user.password);
-          if (!isMatch) return done(null, false, { message: "Invalid credentials" });
+          if (!isMatch) return done(null, false, { message: 'Invalid credentials' });
 
           return done(null, user);
         } catch (err) {
@@ -25,42 +31,76 @@ module.exports = function(passport) {
     )
   );
 
-  // -------- Google OAuth Strategy --------
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL, // ✅ use env variable
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          let user = await User.findOne({ googleId: profile.id });
+  if (googleOAuthEnabled()) {
+    const callbackURL =
+      process.env.GOOGLE_CALLBACK_URL ||
+      `http://localhost:${process.env.PORT || 5001}/api/auth/google/callback`;
 
-          if (!user) {
-            user = await User.create({
-              googleId: profile.id,
-              name: profile.displayName,
-              email: profile.emails[0].value,
-            });
+    passportInstance.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            const googleId = profile.id;
+            const email = profile.emails?.[0]?.value?.toLowerCase();
+            const emailVerified = Boolean(profile.emails?.[0]?.verified);
+            const avatar = profile.photos?.[0]?.value;
+            const name = profile.displayName || (email ? email.split('@')[0] : 'User');
+
+            if (!email) {
+              return done(new Error('Google account did not return an email address'));
+            }
+
+            let user = await User.findOne({ 'providers.google.id': googleId });
+
+            if (!user) {
+              user = await User.findOne({ email });
+              if (user) {
+                user.providers = user.providers || {};
+                user.providers.google = { id: googleId, emailVerified };
+                if (avatar) user.avatar = avatar;
+                user.emailVerified = user.emailVerified || emailVerified;
+              } else {
+                user = new User({
+                  name,
+                  email,
+                  avatar: avatar || undefined,
+                  emailVerified,
+                  providers: { google: { id: googleId, emailVerified } },
+                });
+              }
+            } else if (avatar) {
+              user.avatar = avatar;
+            }
+
+            user.lastLogin = new Date();
+            await user.save();
+            return done(null, user);
+          } catch (err) {
+            return done(err, null);
           }
-
-          return done(null, user);
-        } catch (err) {
-          return done(err, null);
         }
-      }
-    )
-  );
+      )
+    );
+  }
 
-  // -------- Serialize / Deserialize --------
-  passport.serializeUser((user, done) => done(null, user.id));
+  passportInstance.serializeUser((user, done) => {
+    done(null, user._id.toString());
+  });
 
-  passport.deserializeUser((id, done) => {
-    User.findById(id)
-      .then(user => done(null, user))
-      .catch(err => done(err, null));
+  passportInstance.deserializeUser(async (id, done) => {
+    try {
+      const user = await User.findById(id);
+      done(null, user);
+    } catch (err) {
+      done(err, null);
+    }
   });
 };
 
-// module.exports = passport;
+configurePassport.googleOAuthEnabled = googleOAuthEnabled;
+module.exports = configurePassport;

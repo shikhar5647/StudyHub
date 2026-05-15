@@ -9,7 +9,8 @@
     "test": "jest --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:manual": "node test/manual-test.js"
+    "test:manual": "node test/manual-test.js",
+    "seed:courses": "node scripts/seedCourses.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
@@ -27,7 +28,8 @@
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "jest": "^29.6.2",

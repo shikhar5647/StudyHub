@@ -24,6 +24,15 @@
   height: 400px;
 }
 
+.course-card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.course-card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+}
+
 .home-content {
   flex: 1;
   display: flex;

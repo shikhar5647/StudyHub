@@ -9,6 +9,7 @@ const passport = require('passport');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const storageRoutes = require('./routes/storage');
+const courseRoutes = require('./routes/courses');
 
 require('./config/passport')(passport); // call the function and pass passport
 
@@ -61,6 +62,7 @@ app.use(passport.session()); // ✅ needed for session support
 // ---------------- Routes ----------------
 app.use('/api/auth', authRoutes);
 app.use('/api/storage', storageRoutes);
+app.use('/api/courses', courseRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -9,7 +9,6 @@ const {
   refreshToken,
   logout,
   googleCallback,
-  googleAuthFailure,
   getGoogleAuthStatus,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');

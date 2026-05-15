@@ -71,6 +71,31 @@ const getCourse = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/courses/my/created — instructor own courses; admin sees all
+const getMyCreated = asyncHandler(async (req, res) => {
+  if (req.user.role === 'admin') {
+    const courses = await Course.find()
+      .populate('instructor', instructorFields)
+      .sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
+    });
+  }
+
+  const user = await User.findById(req.user._id).populate({
+    path: 'createdCourses',
+    populate: { path: 'instructor', select: instructorFields },
+  });
+
+  res.status(200).json({
+    success: true,
+    count: user.createdCourses.length,
+    data: user.createdCourses,
+  });
+});
+
 // GET /api/courses/my/enrolled
 const getMyEnrolled = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).populate({
@@ -187,8 +212,15 @@ const deleteCourse = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Course deleted' });
 });
 
-// POST /api/courses/:slugOrId/enroll
+// POST /api/courses/:slugOrId/enroll — students only
 const enrollCourse = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'student') {
+    return res.status(403).json({
+      success: false,
+      message: 'Only students can enroll in courses. Instructors manage courses from the instructor dashboard.',
+    });
+  }
+
   const course = await findCourseByIdOrSlug(req.params.slugOrId);
   if (!course || !course.published) {
     return res.status(404).json({ success: false, message: 'Course not found' });
@@ -251,6 +283,7 @@ module.exports = {
   getCourses,
   getCategories,
   getCourse,
+  getMyCreated,
   getMyEnrolled,
   createCourse,
   updateCourse,

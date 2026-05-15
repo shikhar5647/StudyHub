@@ -55,3 +55,32 @@ export function unenrollFromCourse(slug) {
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
   }).then(parseJson);
 }
+
+export function getMyCreatedCourses() {
+  return fetch(`${API_BASE}/api/courses/my/created`, {
+    headers: authHeaders(),
+  }).then(parseJson);
+}
+
+export function createCourse(payload) {
+  return fetch(`${API_BASE}/api/courses`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(parseJson);
+}
+
+export function updateCourse(slugOrId, payload) {
+  return fetch(`${API_BASE}/api/courses/${slugOrId}`, {
+    method: 'PUT',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(parseJson);
+}
+
+export function deleteCourse(slugOrId) {
+  return fetch(`${API_BASE}/api/courses/${slugOrId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  }).then(parseJson);
+}

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { API_BASE } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const AuthCallback = () => {
         });
 
         toast.success('Signed in with Google!');
-        navigate('/dashboard', { replace: true });
+        navigate(dashboardPathForRole(data.data?.role), { replace: true });
       } catch (err) {
         toast.error(err.message);
         navigate('/login', { replace: true });

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listCourses } from '../api/courses';
-import { getAccessToken } from '../utils/auth';
+import { getAccessToken, getStoredUser } from '../utils/auth';
+import { dashboardPathForRole, isAdmin, isInstructor } from '../utils/rbac';
 import Signup from './Signup';
 
 const Navbar = () => {
@@ -9,7 +10,15 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [courseLinks, setCourseLinks] = useState([]);
+  const [user, setUser] = useState(getStoredUser());
   const isLoggedIn = Boolean(getAccessToken());
+
+  useEffect(() => {
+    const sync = () => setUser(getStoredUser());
+    sync();
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     listCourses()
@@ -17,16 +26,7 @@ const Navbar = () => {
       .catch(() => setCourseLinks([]));
   }, []);
 
-  const toggleNavbar = () => setIsOpen(!isOpen);
-  const toggleDropdown = (e) => {
-    e.preventDefault();
-    setDropdownOpen(!dropdownOpen);
-  };
-  const openSignup = (e) => {
-    e.preventDefault();
-    setShowSignup(true);
-  };
-  const closeSignup = () => setShowSignup(false);
+  const dashPath = user ? dashboardPathForRole(user.role) : '/dashboard';
 
   return (
     <>
@@ -39,18 +39,13 @@ const Navbar = () => {
           <button
             className="navbar-toggler"
             type="button"
-            onClick={toggleNavbar}
-            aria-controls="navbarSupportedContent"
-            aria-expanded={isOpen}
+            onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation"
           >
-            <span className="navbar-toggler-icon"></span>
+            <span className="navbar-toggler-icon" />
           </button>
 
-          <div
-            className={`collapse navbar-collapse${isOpen ? ' show' : ''}`}
-            id="navbarSupportedContent"
-          >
+          <div className={`collapse navbar-collapse${isOpen ? ' show' : ''}`}>
             <ul className="navbar-nav me-3 mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" to="/">
@@ -71,18 +66,15 @@ const Navbar = () => {
                 <button
                   type="button"
                   className="nav-link dropdown-toggle btn btn-link"
-                  onClick={toggleDropdown}
-                  aria-expanded={dropdownOpen}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDropdownOpen(!dropdownOpen);
+                  }}
                   style={{ textDecoration: 'none' }}
                 >
                   Browse
                 </button>
                 <ul className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}>
-                  {courseLinks.length === 0 && (
-                    <li>
-                      <span className="dropdown-item text-muted">Loading…</span>
-                    </li>
-                  )}
                   {courseLinks.map((course) => (
                     <li key={course._id}>
                       <Link
@@ -97,35 +89,41 @@ const Navbar = () => {
                   <li><hr className="dropdown-divider" /></li>
                   <li>
                     <Link className="dropdown-item" to="/courses">
-                      View all courses
+                      View all
                     </Link>
                   </li>
                 </ul>
               </li>
             </ul>
 
-            <form
-              className="d-flex mx-auto"
-              role="search"
-              style={{ maxWidth: '600px', width: '100%' }}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                className="form-control me-2"
-                type="search"
-                placeholder="Search on courses page"
-                aria-label="Search"
-                onFocus={() => window.location.assign('/courses')}
-              />
-            </form>
-
-            <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
               {isLoggedIn ? (
-                <li className="nav-item">
-                  <Link className="nav-link" to="/dashboard">
-                    Dashboard
-                  </Link>
-                </li>
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to={dashPath}>
+                      Dashboard
+                    </Link>
+                  </li>
+                  {(isInstructor(user) || isAdmin(user)) && (
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/instructor/courses/new">
+                        Create course
+                      </Link>
+                    </li>
+                  )}
+                  {isAdmin(user) && (
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin">
+                        Admin
+                      </Link>
+                    </li>
+                  )}
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/profile">
+                      Profile
+                    </Link>
+                  </li>
+                </>
               ) : (
                 <>
                   <li className="nav-item">
@@ -137,7 +135,10 @@ const Navbar = () => {
                     <button
                       type="button"
                       className="nav-link btn btn-link"
-                      onClick={openSignup}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowSignup(true);
+                      }}
                       style={{ textDecoration: 'none' }}
                     >
                       Sign Up
@@ -153,7 +154,7 @@ const Navbar = () => {
       {showSignup && (
         <div className="signup-overlay">
           <div className="signup-modal">
-            <button type="button" className="btn-close float-end" onClick={closeSignup} aria-label="Close" />
+            <button type="button" className="btn-close float-end" onClick={() => setShowSignup(false)} aria-label="Close" />
             <Signup />
           </div>
         </div>

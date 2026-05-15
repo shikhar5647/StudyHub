@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -7,6 +7,8 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
+import { getSignupRoles } from '../api/users';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const Signup = () => {
@@ -16,7 +18,20 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'student',
   });
+  const [signupRoles, setSignupRoles] = useState([
+    { id: 'student', label: 'Student' },
+    { id: 'instructor', label: 'Course Instructor' },
+  ]);
+
+  useEffect(() => {
+    getSignupRoles()
+      .then((res) => {
+        if (res.data?.length) setSignupRoles(res.data);
+      })
+      .catch(() => {});
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -55,6 +70,7 @@ const Signup = () => {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          role: formData.role,
         }),
       });
 
@@ -65,7 +81,7 @@ const Signup = () => {
       saveAuthSession(data.data);
 
       toast.success('Account created successfully!');
-      navigate('/dashboard');
+      navigate(dashboardPathForRole(data.data?.user?.role || formData.role));
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -100,6 +116,29 @@ const Signup = () => {
                       required
                     />
                     {formErrors.name && <div className="invalid-feedback">{formErrors.name}</div>}
+                  </div>
+
+                  {/* Account type */}
+                  <div className="mb-3">
+                    <label className="form-label">I want to join as</label>
+                    <div className="d-flex flex-column gap-2">
+                      {signupRoles.map((r) => (
+                        <label key={r.id} className="form-check border rounded p-2">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            name="role"
+                            value={r.id}
+                            checked={formData.role === r.id}
+                            onChange={updateFormData}
+                          />
+                          <span className="form-check-label ms-1">{r.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="form-text small text-muted">
+                      Students enroll in courses. Instructors create and manage courses.
+                    </p>
                   </div>
 
                   {/* Email */}

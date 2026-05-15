@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { API_BASE } from '../config/api';
@@ -8,12 +8,9 @@ import {
   getStoredUser,
   saveAuthSession,
 } from '../utils/auth';
-import { dashboardPathForRole, isAdmin, isInstructor } from '../utils/rbac';
-import StudentDashboard from './dashboard/StudentDashboard';
-import InstructorDashboard from './dashboard/InstructorDashboard';
-import AdminDashboard from './dashboard/AdminDashboard';
+import { hasRole } from '../utils/rbac';
 
-const Dashboard = () => {
+export function useAuthUser({ roles = null } = {}) {
   const navigate = useNavigate();
   const [user, setUser] = useState(getStoredUser());
   const [loading, setLoading] = useState(true);
@@ -32,11 +29,13 @@ const Dashboard = () => {
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (!ok) throw new Error(data.message || 'Failed to load profile');
+        if (roles && !hasRole(data.data, ...roles)) {
+          toast.error('You do not have access to this page');
+          navigate('/dashboard');
+          return;
+        }
         setUser(data.data);
-        saveAuthSession({
-          accessToken: token,
-          user: data.data,
-        });
+        saveAuthSession({ accessToken: token, user: data.data });
       })
       .catch((err) => {
         toast.error(err.message);
@@ -44,30 +43,13 @@ const Dashboard = () => {
         navigate('/login');
       })
       .finally(() => setLoading(false));
-  }, [navigate]);
+  }, [navigate, roles]);
 
-  const handleLogout = () => {
+  const logout = () => {
     clearAuthSession();
     toast.success('Logged out');
     navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="container py-5 text-center">
-        <p>Loading dashboard…</p>
-      </div>
-    );
-  }
-
-  if (isAdmin(user)) {
-    return <AdminDashboard user={user} onLogout={handleLogout} />;
-  }
-  if (isInstructor(user)) {
-    return <InstructorDashboard user={user} onLogout={handleLogout} />;
-  }
-  return <StudentDashboard user={user} onLogout={handleLogout} />;
-};
-
-export { dashboardPathForRole };
-export default Dashboard;
+  return { user, loading, logout };
+}

@@ -7,6 +7,7 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const AUTH_ERRORS = {
@@ -64,7 +65,7 @@ const Login = () => {
       saveAuthSession(data.data);
 
       toast.success('Logged in successfully!');
-      navigate('/dashboard');
+      navigate(dashboardPathForRole(data.data?.user?.role));
     } catch (err) {
       toast.error(err.message);
     } finally {

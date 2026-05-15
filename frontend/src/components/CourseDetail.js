@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaBook, FaClock, FaUser, FaUsers } from 'react-icons/fa';
 import { getCourse, enrollInCourse, unenrollFromCourse } from '../api/courses';
-import { getAccessToken } from '../utils/auth';
+import { getAccessToken, getStoredUser } from '../utils/auth';
+import { isAdmin, isInstructor, isStudent } from '../utils/rbac';
 
 function youtubeEmbedUrl(url) {
   if (!url) return null;
@@ -140,6 +141,13 @@ const CourseDetail = () => {
 
   const instructor = course.instructor;
   const modules = [...(course.modules || [])].sort((a, b) => a.order - b.order);
+  const currentUser = getStoredUser();
+  const instructorId = instructor?._id?.toString?.() || instructor?._id;
+  const canManage =
+    isAdmin(currentUser) ||
+    (isInstructor(currentUser) &&
+      instructorId &&
+      String(currentUser?._id) === String(instructorId));
 
   return (
     <div className="pb-5">
@@ -193,25 +201,45 @@ const CourseDetail = () => {
               )}
             </div>
           </div>
-          <div className="mt-4">
-            {enrolled ? (
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                disabled={actionLoading}
-                onClick={handleUnenroll}
+          <div className="mt-4 d-flex flex-wrap gap-2">
+            {canManage && (
+              <Link
+                to={`/instructor/courses/${course.slug}/edit`}
+                className="btn btn-warning"
               >
-                {actionLoading ? 'Processing…' : 'Unenroll'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-light btn-lg"
-                disabled={actionLoading}
-                onClick={handleEnroll}
-              >
-                {actionLoading ? 'Processing…' : 'Enroll for free'}
-              </button>
+                Edit course
+              </Link>
+            )}
+            {isStudent(currentUser) && (
+              enrolled ? (
+                <button
+                  type="button"
+                  className="btn btn-outline-light"
+                  disabled={actionLoading}
+                  onClick={handleUnenroll}
+                >
+                  {actionLoading ? 'Processing…' : 'Unenroll'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-light btn-lg"
+                  disabled={actionLoading}
+                  onClick={handleEnroll}
+                >
+                  {actionLoading ? 'Processing…' : 'Enroll for free'}
+                </button>
+              )
+            )}
+            {!getAccessToken() && (
+              <Link to="/login" className="btn btn-light btn-lg">
+                Log in to enroll
+              </Link>
+            )}
+            {getAccessToken() && isInstructor(currentUser) && !canManage && (
+              <span className="text-white-50 small align-self-center">
+                Browse as instructor — switch to a student account to enroll.
+              </span>
             )}
           </div>
         </div>

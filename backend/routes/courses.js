@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const { protect } = require('../middleware/auth');
-const { requireRole } = require('../middleware/roles');
+const { requireRole, requirePermission } = require('../middleware/rbac');
 const {
   getCourses,
   getCategories,
   getCourse,
+  getMyCreated,
   getMyEnrolled,
   createCourse,
   updateCourse,
@@ -13,10 +16,6 @@ const {
   enrollCourse,
   unenrollCourse,
 } = require('../controllers/courseController');
-
-// Public & optional-auth (attach user when token present)
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
 const optionalAuth = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -34,15 +33,51 @@ const optionalAuth = async (req, res, next) => {
 
 router.get('/', getCourses);
 router.get('/categories/list', getCategories);
-router.get('/my/enrolled', protect, getMyEnrolled);
 
-router.post('/', protect, requireRole(['instructor', 'admin']), createCourse);
+router.get(
+  '/my/created',
+  protect,
+  requireRole('instructor', 'admin'),
+  requirePermission('course:read:own'),
+  getMyCreated
+);
+router.get(
+  '/my/enrolled',
+  protect,
+  requireRole('student'),
+  getMyEnrolled
+);
+
+router.post(
+  '/',
+  protect,
+  requireRole('instructor', 'admin'),
+  requirePermission('course:create'),
+  createCourse
+);
 
 router.get('/:slugOrId', optionalAuth, getCourse);
-router.put('/:slugOrId', protect, requireRole(['instructor', 'admin']), updateCourse);
-router.delete('/:slugOrId', protect, requireRole(['instructor', 'admin']), deleteCourse);
 
-router.post('/:slugOrId/enroll', protect, enrollCourse);
-router.post('/:slugOrId/unenroll', protect, unenrollCourse);
+router.put(
+  '/:slugOrId',
+  protect,
+  requireRole('instructor', 'admin'),
+  updateCourse
+);
+router.delete(
+  '/:slugOrId',
+  protect,
+  requireRole('instructor', 'admin'),
+  deleteCourse
+);
+
+router.post(
+  '/:slugOrId/enroll',
+  protect,
+  requireRole('student'),
+  requirePermission('course:enroll'),
+  enrollCourse
+);
+router.post('/:slugOrId/unenroll', protect, requireRole('student'), unenrollCourse);
 
 module.exports = router;

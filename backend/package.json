@@ -10,7 +10,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:manual": "node test/manual-test.js",
-    "seed:courses": "node scripts/seedCourses.js"
+    "seed:courses": "node scripts/seedCourses.js",
+    "seed:users": "node scripts/seedUsers.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",

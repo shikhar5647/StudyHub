@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const asyncHandler = require('../middleware/asyncHandler');
 const { issueAuthTokens } = require('../utils/issueAuthTokens');
 const { googleOAuthEnabled } = require('../config/passport');
+const { SIGNUP_ROLES } = require('../config/permissions');
 
 function getFrontendUrl() {
   return process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -14,7 +15,8 @@ function getFrontendUrl() {
 // @route   POST /api/auth/signup
 // @access  Public
 const signup = asyncHandler(async (req, res) => {
-  const { name, email, password, role = 'student' } = req.body;
+  const { name, email, password, role: requestedRole } = req.body;
+  const role = SIGNUP_ROLES.includes(requestedRole) ? requestedRole : 'student';
 
   // Validation
   if (!name || !email || !password) {
@@ -28,6 +30,13 @@ const signup = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'Password must be at least 6 characters long'
+    });
+  }
+
+  if (requestedRole === 'admin') {
+    return res.status(400).json({
+      success: false,
+      message: 'Admin accounts cannot be created via public signup',
     });
   }
 

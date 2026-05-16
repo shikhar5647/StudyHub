@@ -34,7 +34,7 @@ function configurePassport(passportInstance) {
   if (googleOAuthEnabled()) {
     const callbackURL =
       process.env.GOOGLE_CALLBACK_URL ||
-      `http://localhost:${process.env.PORT || 5001}/api/auth/google/callback`;
+      `http://localhost:${process.env.PORT || 5000}/api/auth/google/callback`;
 
     passportInstance.use(
       new GoogleStrategy(
@@ -64,6 +64,7 @@ function configurePassport(passportInstance) {
                 user.providers.google = { id: googleId, emailVerified };
                 if (avatar) user.avatar = avatar;
                 user.emailVerified = user.emailVerified || emailVerified;
+                if (!user.name) user.name = name;
               } else {
                 user = new User({
                   name,
@@ -73,8 +74,9 @@ function configurePassport(passportInstance) {
                   providers: { google: { id: googleId, emailVerified } },
                 });
               }
-            } else if (avatar) {
-              user.avatar = avatar;
+            } else {
+              if (avatar) user.avatar = avatar;
+              if (!user.name) user.name = name;
             }
 
             user.lastLogin = new Date();

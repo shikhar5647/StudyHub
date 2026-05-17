@@ -5,6 +5,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { issueAuthTokens } = require('../utils/issueAuthTokens');
 const { googleOAuthEnabled } = require('../config/passport');
 const { SIGNUP_ROLES } = require('../config/permissions');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 function getFrontendUrl() {
   return process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -57,11 +58,20 @@ const signup = asyncHandler(async (req, res) => {
     role
   });
 
+  // Send email verification (non-blocking — don't fail signup if email fails)
+  try {
+    const verifyToken = user.createEmailVerificationToken();
+    await user.save({ validateBeforeSave: false });
+    await sendVerificationEmail(email, verifyToken);
+  } catch (emailErr) {
+    console.error('Failed to send verification email:', emailErr.message);
+  }
+
   const tokens = await issueAuthTokens(user);
 
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'User registered successfully. Please check your email to verify your account.',
     data: tokens
   });
 });
@@ -205,6 +215,123 @@ const getGoogleAuthStatus = (req, res) => {
   });
 };
 
+// @desc    Resend verification email
+// @route   POST /api/auth/resend-verification
+// @access  Private
+const resendVerification = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user.emailVerified) {
+    return res.status(400).json({ success: false, message: 'Email is already verified.' });
+  }
+
+  const verifyToken = user.createEmailVerificationToken();
+  await user.save({ validateBeforeSave: false });
+  await sendVerificationEmail(user.email, verifyToken);
+
+  res.status(200).json({ success: true, message: 'Verification email sent.' });
+});
+
+// @desc    Verify email with token from link
+// @route   GET /api/auth/verify-email?token=xxx
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ success: false, message: 'Token is required.' });
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: { $gt: Date.now() },
+  }).select('+emailVerificationToken +emailVerificationExpires');
+
+  if (!user) {
+    return res.status(400).json({ success: false, message: 'Token is invalid or has expired.' });
+  }
+
+  user.emailVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({ success: true, message: 'Email verified successfully! You can now log in.' });
+});
+
+// @desc    Send password reset email
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Please provide your email address.' });
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  // Always respond with success to prevent email enumeration
+  if (!user) {
+    return res.status(200).json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  }
+
+  if (!user.password) {
+    return res.status(400).json({
+      success: false,
+      message: 'This account uses Google sign-in and does not have a password to reset.',
+    });
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await sendPasswordResetEmail(user.email, resetToken);
+  } catch (emailErr) {
+    // Clean up the token if email fails
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    return res.status(500).json({ success: false, message: 'Could not send reset email. Please try again later.' });
+  }
+
+  res.status(200).json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+});
+
+// @desc    Reset password using token from email link
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ success: false, message: 'Token and new password are required.' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  }).select('+passwordResetToken +passwordResetExpires');
+
+  if (!user) {
+    return res.status(400).json({ success: false, message: 'Token is invalid or has expired.' });
+  }
+
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  res.status(200).json({ success: true, message: 'Password reset successful. You can now log in with your new password.' });
+});
+
 module.exports = {
   signup,
   login,
@@ -213,4 +340,8 @@ module.exports = {
   logout,
   googleCallback,
   getGoogleAuthStatus,
+  resendVerification,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
 };

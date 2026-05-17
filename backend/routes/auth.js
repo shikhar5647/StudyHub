@@ -10,6 +10,10 @@ const {
   logout,
   googleCallback,
   getGoogleAuthStatus,
+  resendVerification,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -56,5 +60,13 @@ router.post('/login', login);
 router.get('/me', protect, getMe);
 router.post('/refresh', refreshToken);
 router.post('/logout', protect, logout);
+
+// ----- Email verification -----
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', protect, resendVerification);
+
+// ----- Password reset -----
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;

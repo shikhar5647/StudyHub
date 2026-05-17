@@ -125,6 +125,11 @@ const Login = () => {
                   </button>
                 </div>
                 {formErrors.password && <div className="text-danger">{formErrors.password}</div>}
+                <div className="text-end mt-1">
+                  <a href="/forgot-password" className="text-muted small">
+                    Forgot password?
+                  </a>
+                </div>
               </div>
 
               {/* Submit */}

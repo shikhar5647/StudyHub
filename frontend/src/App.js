@@ -17,6 +17,9 @@ import InstructorHub from './components/InstructorHub';
 import AdminHub from './components/AdminHub';
 import CourseEditor from './components/instructor/CourseEditor';
 import ProtectedRoute from './components/ProtectedRoute';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import VerifyEmail from './components/VerifyEmail';
 import './App.css';
 
 function App() {
@@ -33,6 +36,9 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             <Route
               path="/dashboard"

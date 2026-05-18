@@ -12,6 +12,7 @@ import AuthCallback from './components/AuthCallback';
 import StorageManager from './components/StorageManager';
 import CoursesList from './components/CoursesList';
 import CourseDetail from './components/CourseDetail';
+import CourseLearn from './components/CourseLearn';
 import Profile from './components/Profile';
 import InstructorHub from './components/InstructorHub';
 import AdminHub from './components/AdminHub';
@@ -30,6 +31,14 @@ function App() {
             <Route path="/team" element={<Team />} />
             <Route path="/courses" element={<CoursesList />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
+            <Route
+              path="/courses/:slug/learn"
+              element={
+                <ProtectedRoute roles={['student']}>
+                  <CourseLearn />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />

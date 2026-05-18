@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FaBookOpen, FaSearch } from 'react-icons/fa';
-import { listCourses, listCategories } from '../api/courses';
+import { listCourses, listCategories, getMyEnrolledCourses } from '../api/courses';
+import { getAccessToken, getStoredUser } from '../utils/auth';
+import { isStudent } from '../utils/rbac';
 import CourseCard from './CourseCard';
 
 const CoursesList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [category, setCategory] = useState('');
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [enrolledIds, setEnrolledIds] = useState(new Set());
+  const showEnroll = Boolean(getAccessToken()) && isStudent(getStoredUser());
 
   const loadCourses = async (opts = {}) => {
     setLoading(true);
@@ -29,22 +35,48 @@ const CoursesList = () => {
     }
   };
 
+  const syncUrl = (opts) => {
+    const next = new URLSearchParams();
+    if (opts.search) next.set('search', opts.search);
+    if (opts.category) next.set('category', opts.category);
+    setSearchParams(next, { replace: true });
+  };
+
   useEffect(() => {
     listCategories()
       .then((res) => setCategories(res.data || []))
       .catch(() => setCategories([]));
-    loadCourses();
-  }, []);
+
+    const urlSearch = searchParams.get('search') || '';
+    const urlCategory = searchParams.get('category') || '';
+    setSearch(urlSearch);
+    setSearchInput(urlSearch);
+    setCategory(urlCategory);
+    loadCourses({ search: urlSearch, category: urlCategory });
+
+    if (showEnroll) {
+      getMyEnrolledCourses()
+        .then((res) => {
+          const ids = new Set((res.data || []).map((c) => c._id));
+          setEnrolledIds(ids);
+        })
+        .catch(() => setEnrolledIds(new Set()));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString(), showEnroll]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setSearch(searchInput.trim());
-    loadCourses({ category, search: searchInput.trim() });
+    const q = searchInput.trim();
+    setSearch(q);
+    syncUrl({ search: q, category });
+    loadCourses({ category, search: q });
   };
 
   const handleCategoryChange = (e) => {
     const value = e.target.value;
     setCategory(value);
+    syncUrl({ search, category: value });
     loadCourses({ category: value, search });
   };
 
@@ -57,6 +89,11 @@ const CoursesList = () => {
           <p className="lead text-muted">
             Browse published courses from StudyHub instructors.
           </p>
+          {search && (
+            <p className="text-muted">
+              Showing results for &ldquo;<strong>{search}</strong>&rdquo;
+            </p>
+          )}
         </div>
 
         <div className="row g-3 mb-4">
@@ -100,7 +137,12 @@ const CoursesList = () => {
 
         <div className="row g-4">
           {courses.map((course) => (
-            <CourseCard key={course._id} course={course} />
+            <CourseCard
+              key={course._id}
+              course={course}
+              showEnroll={showEnroll}
+              isEnrolled={enrolledIds.has(course._id)}
+            />
           ))}
         </div>
       </div>

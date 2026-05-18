@@ -65,7 +65,12 @@ const Login = () => {
       saveAuthSession(data.data);
 
       toast.success('Logged in successfully!');
-      navigate(dashboardPathForRole(data.data?.user?.role));
+      const redirect = searchParams.get('redirect');
+      if (redirect && redirect.startsWith('/')) {
+        navigate(redirect, { replace: true });
+      } else {
+        navigate(dashboardPathForRole(data.data?.user?.role));
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {

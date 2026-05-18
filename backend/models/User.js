@@ -25,6 +25,13 @@ const userSchema = new Schema({
     expiresAt: { type: Date }
   }],
   enrolledCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+  learningProgress: [{
+    course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
+    completedLessonIds: [{ type: String }],
+    lastLessonId: { type: String },
+    lastAccessedAt: { type: Date, default: Date.now },
+    completedAt: { type: Date },
+  }],
   createdCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
   notes: [{ // personal notes saved by student for courses
     course: { type: Schema.Types.ObjectId, ref: 'Course' },

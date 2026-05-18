@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaSearch } from 'react-icons/fa';
 import { listCourses } from '../api/courses';
 import { getAccessToken, getStoredUser } from '../utils/auth';
 import { dashboardPathForRole, isAdmin, isInstructor } from '../utils/rbac';
 import Signup from './Signup';
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [courseLinks, setCourseLinks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(getStoredUser());
   const isLoggedIn = Boolean(getAccessToken());
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    navigate(q ? `/courses?search=${encodeURIComponent(q)}` : '/courses');
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     const sync = () => setUser(getStoredUser());
@@ -95,6 +105,25 @@ const Navbar = () => {
                 </ul>
               </li>
             </ul>
+
+            <form
+              className="d-flex flex-grow-1 mx-lg-3 my-2 my-lg-0"
+              role="search"
+              onSubmit={handleSearch}
+            >
+              <input
+                type="search"
+                className="form-control"
+                placeholder="Search courses…"
+                aria-label="Search courses"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="btn btn-primary ms-2 d-flex align-items-center">
+                <FaSearch />
+                <span className="d-none d-sm-inline ms-1">Search</span>
+              </button>
+            </form>
 
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
               {isLoggedIn ? (

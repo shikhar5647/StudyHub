@@ -37,6 +37,40 @@ const InstructorDashboard = ({ user, onLogout }) => {
         </Link>
       </div>
 
+      {/* Analytics Summary */}
+      {!loading && courses.length > 0 && (
+        <div className="row g-3 mb-4">
+          <div className="col-md-4">
+            <div className="card text-white bg-primary shadow-sm h-100 border-0">
+              <div className="card-body">
+                <h6 className="card-title opacity-75">Total Courses</h6>
+                <h2 className="mb-0">{courses.length}</h2>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card text-white bg-success shadow-sm h-100 border-0">
+              <div className="card-body">
+                <h6 className="card-title opacity-75">Total Students</h6>
+                <h2 className="mb-0">
+                  {courses.reduce((acc, c) => acc + (c.enrolledCount || 0), 0)}
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card text-white bg-info shadow-sm h-100 border-0">
+              <div className="card-body">
+                <h6 className="card-title opacity-75">Estimated Revenue</h6>
+                <h2 className="mb-0">
+                  ${courses.reduce((acc, c) => acc + ((c.enrolledCount || 0) * (c.price || 0)), 0).toFixed(2)}
+                </h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h3 className="h5 mb-3">Your courses ({courses.length})</h3>
       {loading && <p className="text-muted">Loading…</p>}
       {!loading && courses.length === 0 && (

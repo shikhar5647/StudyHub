@@ -22,6 +22,7 @@ const {
   markLessonComplete,
   setLastLesson,
 } = require('../controllers/progressController');
+const { downloadCertificate } = require('../controllers/certificateController');
 
 const optionalAuth = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -85,6 +86,13 @@ router.patch(
   protect,
   requireRole('student'),
   setLastLesson
+);
+
+router.get(
+  '/:slugOrId/certificate',
+  protect,
+  requireRole('student'),
+  downloadCertificate
 );
 
 router.get('/:slugOrId', optionalAuth, getCourse);

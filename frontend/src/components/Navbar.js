@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import { listCourses } from '../api/courses';
 import { getAccessToken, getStoredUser } from '../utils/auth';
 import { dashboardPathForRole } from '../utils/rbac';
+import { useTheme } from '../context/ThemeContext';
 import Signup from './Signup';
 
 const Navbar = () => {
@@ -12,6 +14,7 @@ const Navbar = () => {
   const [showSignup, setShowSignup] = useState(false);
   const [courseLinks, setCourseLinks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const { theme, toggleTheme } = useTheme();
   const isLoggedIn = Boolean(getAccessToken());
   const [user, setUser] = useState(getStoredUser());
 
@@ -125,6 +128,16 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </form>
+
+            <button
+              type="button"
+              className="theme-toggle me-2"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <FaSun size={16} /> : <FaMoon size={16} />}
+            </button>
 
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
               {isLoggedIn ? (

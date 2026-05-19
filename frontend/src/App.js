@@ -21,10 +21,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import VerifyEmail from './components/VerifyEmail';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 function App() {
   return (
+    <ThemeProvider>
     <Router>
       <div className="App">
         <Navbar />
@@ -110,6 +112,7 @@ function App() {
         <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </Router>
+    </ThemeProvider>
   );
 }
 

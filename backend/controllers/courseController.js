@@ -1,6 +1,7 @@
 const Course = require('../models/Course');
 const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
+const { sendEnrollmentEmail } = require('../services/emailService');
 
 const instructorFields = 'name avatar role';
 const listProjection =
@@ -255,6 +256,10 @@ const enrollCourse = asyncHandler(async (req, res) => {
   await user.save();
   course.enrolledCount += 1;
   await course.save();
+
+  sendEnrollmentEmail(user.email, user.name, course.title, course.slug).catch((err) =>
+    console.error('Failed to send enrollment email:', err.message)
+  );
 
   res.status(200).json({
     success: true,

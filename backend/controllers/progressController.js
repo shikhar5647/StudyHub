@@ -1,6 +1,7 @@
 const Course = require('../models/Course');
 const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
+const { sendCourseCompletionEmail } = require('../services/emailService');
 
 function countLessons(course) {
   let n = 0;
@@ -135,11 +136,19 @@ const markLessonComplete = asyncHandler(async (req, res) => {
   entry.lastAccessedAt = new Date();
 
   const total = countLessons(course);
-  if (entry.completedLessonIds.length >= total && total > 0) {
-    entry.completedAt = entry.completedAt || new Date();
+  const justCompleted =
+    entry.completedLessonIds.length >= total && total > 0 && !entry.completedAt;
+  if (justCompleted) {
+    entry.completedAt = new Date();
   }
 
   await user.save();
+
+  if (justCompleted) {
+    sendCourseCompletionEmail(user.email, user.name, course.title, course.slug).catch(
+      (err) => console.error('Failed to send completion email:', err.message)
+    );
+  }
 
   res.status(200).json({
     success: true,

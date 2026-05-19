@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaPlayCircle } from 'react-icons/fa';
-import { getMyProgress } from '../../api/progress';
+import { FaPlayCircle, FaAward } from 'react-icons/fa';
+import { getMyProgress, downloadCertificate } from '../../api/progress';
 import ProfileHeader from '../ProfileHeader';
 
 const StudentDashboard = ({ user, onLogout }) => {
@@ -93,6 +93,27 @@ const StudentDashboard = ({ user, onLogout }) => {
                           ? 'Review course'
                           : 'Start learning'}
                     </Link>
+                    {progress?.isComplete && (
+                      <button
+                        type="button"
+                        className="btn btn-success btn-sm"
+                        onClick={() => {
+                          downloadCertificate(course.slug)
+                            .then((blob) => {
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `StudyHub_Certificate_${course.slug}.pdf`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            })
+                            .catch((err) => alert(err.message));
+                        }}
+                      >
+                        <FaAward className="me-1" />
+                        Download Certificate
+                      </button>
+                    )}
                     <Link
                       to={`/courses/${course.slug}`}
                       className="btn btn-outline-secondary btn-sm"

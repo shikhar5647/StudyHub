@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaCheckCircle, FaCircle } from 'react-icons/fa';
+import FlashcardQuiz from './FlashcardQuiz';
 import { getCourse } from '../api/courses';
 import {
   getCourseProgress,
@@ -144,6 +145,16 @@ const CourseLearn = () => {
     }
 
     if (content.provider === 'inline' && content.markdown) {
+      if (lesson.type === 'quiz') {
+        try {
+          const quiz = JSON.parse(content.markdown);
+          if (quiz.format === 'flashcard' && quiz.cards) {
+            return <FlashcardQuiz cards={quiz.cards} />;
+          }
+        } catch {
+          // fall through to plain text rendering
+        }
+      }
       return (
         <div className="p-4 bg-light rounded" style={{ whiteSpace: 'pre-wrap' }}>
           {content.markdown}

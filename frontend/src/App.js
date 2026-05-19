@@ -16,6 +16,7 @@ import Profile from './components/Profile';
 import InstructorHub from './components/InstructorHub';
 import AdminHub from './components/AdminHub';
 import CourseEditor from './components/instructor/CourseEditor';
+import CourseLearn from './components/CourseLearn';
 import ProtectedRoute from './components/ProtectedRoute';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
@@ -33,6 +34,14 @@ function App() {
             <Route path="/team" element={<Team />} />
             <Route path="/courses" element={<CoursesList />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
+            <Route
+              path="/courses/:slug/learn"
+              element={
+                <ProtectedRoute>
+                  <CourseLearn />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
@@ -96,8 +105,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/storage" element={<StorageManager />} />
           </Routes>
         </main>
         <ToastContainer position="top-right" autoClose={3000} />

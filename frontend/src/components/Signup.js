@@ -7,6 +7,8 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
+import { getSignupRoles } from '../api/users';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const Signup = () => {

@@ -27,7 +27,7 @@ const getCourses = asyncHandler(async (req, res) => {
   const { category, level, search } = req.query;
   const filter = { published: true };
 
-  if (category) filter.category = new RegExp(category, 'i');
+  if (category) filter.category = new RegExp(category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   if (level) filter.level = level;
   if (search) filter.$text = { $search: search };
 

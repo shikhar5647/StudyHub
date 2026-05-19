@@ -33,6 +33,15 @@ export function markLessonComplete(slug, lessonId) {
   ).then(parseJson);
 }
 
+export function downloadCertificate(slug) {
+  return fetch(`${API_BASE}/api/courses/${slug}/certificate`, {
+    headers: authHeaders(false),
+  }).then((res) => {
+    if (!res.ok) return res.json().then((d) => { throw new Error(d.message || 'Failed'); });
+    return res.blob();
+  });
+}
+
 export function setLastLesson(slug, lessonId) {
   return fetch(`${API_BASE}/api/courses/${slug}/progress/last`, {
     method: 'PATCH',

@@ -4,7 +4,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { issueAuthTokens } = require('../utils/issueAuthTokens');
 const { googleOAuthEnabled } = require('../config/passport');
 const { SIGNUP_ROLES } = require('../config/permissions');
-const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 
 function getFrontendUrl() {
   return process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -56,6 +56,11 @@ const signup = asyncHandler(async (req, res) => {
   } catch (emailErr) {
     console.error('Failed to send verification email:', emailErr.message);
   }
+
+  // Send welcome email (non-blocking)
+  sendWelcomeEmail(email, name).catch((err) =>
+    console.error('Failed to send welcome email:', err.message)
+  );
 
   const tokens = await issueAuthTokens(user);
 

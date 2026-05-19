@@ -1,4 +1,4 @@
-const supabase = require('../services/supabase');
+const getSupabase = require('../services/supabase');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const BUCKET = process.env.SUPABASE_BUCKET || 'Study Hub';
@@ -20,13 +20,13 @@ const uploadFile = asyncHandler(async (req, res) => {
 
   const key = makeObjectKey(courseSlug, subfolder, file.originalname);
 
-  const { data, error } = await supabase.storage
+  const { data, error } = await getSupabase().storage
     .from(BUCKET)
     .upload(key, file.buffer, { contentType: file.mimetype, upsert: false });
 
   if (error) return res.status(500).json({ success: false, message: error.message });
 
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(key);
+  const { data: urlData } = getSupabase().storage.from(BUCKET).getPublicUrl(key);
 
   return res.status(201).json({
     success: true,
@@ -40,7 +40,7 @@ const listFiles = asyncHandler(async (req, res) => {
   if (!courseSlug) return res.status(400).json({ success: false, message: 'courseSlug is required' });
 
   const basePrefix = `${courseSlug}/${prefix}`.replace(/\/+$/, '');
-  const { data, error } = await supabase.storage.from(BUCKET).list(basePrefix, { limit: 100, offset: 0 });
+  const { data, error } = await getSupabase().storage.from(BUCKET).list(basePrefix, { limit: 100, offset: 0 });
 
   if (error) return res.status(500).json({ success: false, message: error.message });
 
@@ -52,7 +52,7 @@ const signUrl = asyncHandler(async (req, res) => {
   const { key, expiresInSec = 3600 } = req.body;
   if (!key) return res.status(400).json({ success: false, message: 'key is required' });
 
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(key, expiresInSec);
+  const { data, error } = await getSupabase().storage.from(BUCKET).createSignedUrl(key, expiresInSec);
   if (error) return res.status(500).json({ success: false, message: error.message });
 
   return res.status(200).json({ success: true, data });
@@ -63,7 +63,7 @@ const deleteFile = asyncHandler(async (req, res) => {
   const { key } = req.body;
   if (!key) return res.status(400).json({ success: false, message: 'key is required' });
 
-  const { data, error } = await supabase.storage.from(BUCKET).remove([key]);
+  const { data, error } = await getSupabase().storage.from(BUCKET).remove([key]);
   if (error) return res.status(500).json({ success: false, message: error.message });
 
   return res.status(200).json({ success: true, data });

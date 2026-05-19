@@ -16,6 +16,7 @@ import AdminDashboard from './dashboard/AdminDashboard';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(getStoredUser());
+  const [enrolled, setEnrolled] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,24 +27,28 @@ const Dashboard = () => {
       return;
     }
 
-    fetch(`${API_BASE}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        if (!ok) throw new Error(data.message || 'Failed to load profile');
-        setUser(data.data);
-        saveAuthSession({
-          accessToken: token,
-          user: data.data,
-        });
-      })
-      .catch((err) => {
+    const load = async () => {
+      try {
+        const [meRes, enrolledRes] = await Promise.all([
+          fetch(`${API_BASE}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          getMyEnrolledCourses(),
+        ]);
+        const meData = await meRes.json();
+        if (!meRes.ok) throw new Error(meData.message || 'Failed to load profile');
+        setUser(meData.data);
+        setEnrolled(enrolledRes.data || []);
+      } catch (err) {
         toast.error(err.message);
         clearAuthSession();
         navigate('/login');
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
   }, [navigate]);
 
   const handleLogout = () => {

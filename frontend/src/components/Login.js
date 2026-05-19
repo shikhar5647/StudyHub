@@ -7,7 +7,6 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
-import { dashboardPathForRole } from '../utils/rbac';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const AUTH_ERRORS = {
@@ -62,10 +61,17 @@ const Login = () => {
 
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      saveAuthSession(data.data);
+      // Save tokens
+      localStorage.setItem('token', data.data.accessToken);
+      localStorage.setItem('refreshToken', data.data.refreshToken);
 
       toast.success('Logged in successfully!');
-      navigate(dashboardPathForRole(data.data?.user?.role));
+      const redirect = searchParams.get('redirect');
+      if (redirect && redirect.startsWith('/')) {
+        navigate(redirect, { replace: true });
+      } else {
+        navigate(dashboardPathForRole(data.data?.user?.role));
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -75,7 +81,7 @@ const Login = () => {
 
   return (
     <div className="login-container py-5">
-      <div className="container d-flex justify-content-center align-items-center" style={{ width: '360px', height: '576px' }}>
+      <div className="container d-flex justify-content-center align-items-center" style={{ width: '360px', height: '640px' }}>
         <div className="card shadow-lg border-0" style={{ borderRadius: '1rem', width: '100%' }}>
           <div className="card-header text-left bg-primary text-white">
             <h3 className="my-3">Log In</h3>
@@ -133,7 +139,7 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <div className="d-grid gap-2">
+              <div className="d-grid gap-2 mb-3">
                 <button type="submit" className="btn btn-primary py-2" disabled={loading}>
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
@@ -153,6 +159,22 @@ const Login = () => {
                 <p>Don't have an account? <a href="/signup" className="text-primary">Sign up</a></p>
               </div>
             </form>
+
+            {/* Google Login Button */}
+            <div className="d-grid gap-2 mt-3">
+              <button
+                type="button"
+                className="btn btn-danger py-2"
+                onClick={() => window.location.href = `${API_URL}/google`}
+              >
+                Login with Google
+              </button>
+            </div>
+
+            {/* Signup link */}
+            <div className="text-center mt-3">
+              <p>Don't have an account? <Link to="/signup" className="text-primary">Sign up</Link></p>
+            </div>
           </div>
         </div>
       </div>
@@ -161,4 +183,3 @@ const Login = () => {
 };
 
 export default Login;
-

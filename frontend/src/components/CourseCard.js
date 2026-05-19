@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import EnrollButton from './EnrollButton';
 
 const GRADIENTS = [
   'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
@@ -24,7 +25,7 @@ function formatDuration(seconds) {
   return rem ? `${hrs}h ${rem}m` : `${hrs}h`;
 }
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, isEnrolled = false, showEnroll = false }) => {
   const gradient = gradientFor(course.title);
   const lessons = course.metadata?.totalLessons ?? 0;
   const duration = formatDuration(course.metadata?.totalDurationSec);
@@ -72,13 +73,22 @@ const CourseCard = ({ course }) => {
             {duration && ` · ${duration}`}
             {course.enrolledCount > 0 && ` · ${course.enrolledCount} enrolled`}
           </p>
-          <Link
-            to={`/courses/${course.slug}`}
-            className="btn btn-sm btn-primary w-100"
-            style={{ borderRadius: '6px', background: gradient, border: 'none' }}
-          >
-            View Course
-          </Link>
+          <div className="d-grid gap-2">
+            {showEnroll ? (
+              <EnrollButton
+                courseSlug={course.slug}
+                isEnrolled={isEnrolled}
+                className="w-100"
+                onEnrolled={() => window.location.reload()}
+              />
+            ) : null}
+            <Link
+              to={`/courses/${course.slug}`}
+              className="btn btn-sm btn-outline-primary w-100"
+            >
+              View details
+            </Link>
+          </div>
         </div>
       </div>
     </div>

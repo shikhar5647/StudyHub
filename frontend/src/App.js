@@ -96,6 +96,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/storage" element={<StorageManager />} />
           </Routes>
         </main>
         <ToastContainer position="top-right" autoClose={3000} />

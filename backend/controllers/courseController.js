@@ -239,6 +239,19 @@ const enrollCourse = asyncHandler(async (req, res) => {
   }
 
   user.enrolledCourses.push(course._id);
+
+  const hasProgress = user.learningProgress?.some(
+    (p) => p.course.toString() === course._id.toString()
+  );
+  if (!hasProgress) {
+    user.learningProgress = user.learningProgress || [];
+    user.learningProgress.push({
+      course: course._id,
+      completedLessonIds: [],
+      lastAccessedAt: new Date(),
+    });
+  }
+
   await user.save();
   course.enrolledCount += 1;
   await course.save();
@@ -271,6 +284,9 @@ const unenrollCourse = asyncHandler(async (req, res) => {
 
   user.enrolledCourses = user.enrolledCourses.filter(
     (id) => id.toString() !== course._id.toString()
+  );
+  user.learningProgress = (user.learningProgress || []).filter(
+    (p) => p.course.toString() !== course._id.toString()
   );
   await user.save();
   course.enrolledCount = Math.max(0, course.enrolledCount - 1);

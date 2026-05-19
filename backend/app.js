@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();             // ✅ load .env first
 const express = require('express');
 const session = require('express-session');
-const cors = require('cors');    
+const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const passport = require('passport');
@@ -68,8 +68,8 @@ app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     message: 'StudyHub API is running',
     timestamp: new Date().toISOString()
   });

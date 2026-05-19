@@ -16,6 +16,12 @@ const {
   enrollCourse,
   unenrollCourse,
 } = require('../controllers/courseController');
+const {
+  getMyProgress,
+  getCourseProgress,
+  markLessonComplete,
+  setLastLesson,
+} = require('../controllers/progressController');
 
 const optionalAuth = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -47,6 +53,12 @@ router.get(
   requireRole('student'),
   getMyEnrolled
 );
+router.get(
+  '/my/progress',
+  protect,
+  requireRole('student'),
+  getMyProgress
+);
 
 router.post(
   '/',
@@ -54,6 +66,25 @@ router.post(
   requireRole('instructor', 'admin'),
   requirePermission('course:create'),
   createCourse
+);
+
+router.get(
+  '/:slugOrId/progress',
+  protect,
+  requireRole('student'),
+  getCourseProgress
+);
+router.post(
+  '/:slugOrId/progress/lessons/:lessonId/complete',
+  protect,
+  requireRole('student'),
+  markLessonComplete
+);
+router.patch(
+  '/:slugOrId/progress/last',
+  protect,
+  requireRole('student'),
+  setLastLesson
 );
 
 router.get('/:slugOrId', optionalAuth, getCourse);

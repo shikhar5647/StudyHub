@@ -9,6 +9,7 @@ const {
   refreshToken,
   logout,
   googleCallback,
+  googleAuthFailure,
   getGoogleAuthStatus,
   resendVerification,
   verifyEmail,

@@ -1,19 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaArrowLeft, FaBook, FaClock, FaUser, FaUsers } from 'react-icons/fa';
-import { getCourse, enrollInCourse, unenrollFromCourse } from '../api/courses';
-import { getAccessToken, getStoredUser } from '../utils/auth';
+import { FaArrowLeft, FaBook, FaClock, FaPlay, FaUser, FaUsers } from 'react-icons/fa';
+import { getCourse, unenrollFromCourse } from '../api/courses';
+import { API_BASE } from '../config/api';
+import { getAccessToken, getStoredUser, saveAuthSession } from '../utils/auth';
 import { isAdmin, isInstructor, isStudent } from '../utils/rbac';
-
-function youtubeEmbedUrl(url) {
-  if (!url) return null;
-  if (url.includes('embed/')) return url;
-  const match = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
-  );
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
+import EnrollButton from './EnrollButton';
 
 function formatDuration(seconds) {
   if (!seconds) return null;
@@ -24,62 +17,31 @@ function formatDuration(seconds) {
   return rem ? `${hrs}h ${rem}m` : `${hrs}h`;
 }
 
-const LessonContent = ({ lesson, canView }) => {
-  if (!canView && !lesson.isPreviewable) {
-    return (
-      <p className="text-muted small mb-0">Enroll to access this lesson.</p>
-    );
-  }
-
-  const { content } = lesson;
-  if (!content) return null;
-
-  if (content.provider === 'youtube' && content.url) {
-    return (
-      <div className="ratio ratio-16x9 mt-2">
-        <iframe
-          src={youtubeEmbedUrl(content.url)}
-          title={lesson.title}
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        />
-      </div>
-    );
-  }
-
-  if (content.provider === 'inline' && content.markdown) {
-    return (
-      <div
-        className="mt-2 p-3 bg-light rounded small"
-        style={{ whiteSpace: 'pre-wrap' }}
-      >
-        {content.markdown}
-      </div>
-    );
-  }
-
-  if (content.url) {
-    return (
-      <a href={content.url} target="_blank" rel="noreferrer" className="small">
-        Open resource
-      </a>
-    );
-  }
-
-  return null;
-};
-
 const CourseDetail = () => {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [enrolled, setEnrolled] = useState(false);
+  const [user, setUser] = useState(getStoredUser());
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
+      const token = getAccessToken();
+      if (token) {
+        const meRes = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const meData = await meRes.json();
+        if (meRes.ok) {
+          setUser(meData.data);
+          saveAuthSession({ accessToken: token, user: meData.data });
+        }
+      }
+
       const res = await getCourse(slug);
       setCourse(res.data.course);
       setEnrolled(Boolean(res.data.enrolled));
@@ -96,31 +58,18 @@ const CourseDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  const handleEnroll = async () => {
-    if (!getAccessToken()) {
-      toast.info('Please log in to enroll');
-      navigate('/login');
-      return;
+  useEffect(() => {
+    if (searchParams.get('enroll') === '1' && user && isStudent(user) && !enrolled && !loading) {
+      toast.info('Click Enroll for free to join this course');
     }
-    setActionLoading(true);
-    try {
-      await enrollInCourse(slug);
-      setEnrolled(true);
-      toast.success('You are enrolled!');
-      load();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  }, [searchParams, user, enrolled, loading]);
 
   const handleUnenroll = async () => {
     setActionLoading(true);
     try {
       await unenrollFromCourse(slug);
       setEnrolled(false);
-      toast.success('Unenrolled from course');
+      toast.success('You left this course');
       load();
     } catch (err) {
       toast.error(err.message);
@@ -141,13 +90,12 @@ const CourseDetail = () => {
 
   const instructor = course.instructor;
   const modules = [...(course.modules || [])].sort((a, b) => a.order - b.order);
-  const currentUser = getStoredUser();
   const instructorId = instructor?._id?.toString?.() || instructor?._id;
   const canManage =
-    isAdmin(currentUser) ||
-    (isInstructor(currentUser) &&
+    isAdmin(user) ||
+    (isInstructor(user) &&
       instructorId &&
-      String(currentUser?._id) === String(instructorId));
+      String(user?._id) === String(instructorId));
 
   return (
     <div className="pb-5">
@@ -158,7 +106,10 @@ const CourseDetail = () => {
         }}
       >
         <div className="container">
-          <Link to="/courses" className="text-white text-decoration-none small d-inline-flex align-items-center gap-2 mb-3">
+          <Link
+            to="/courses"
+            className="text-white text-decoration-none small d-inline-flex align-items-center gap-2 mb-3"
+          >
             <FaArrowLeft /> Back to courses
           </Link>
           <div className="row align-items-center g-4">
@@ -168,6 +119,9 @@ const CourseDetail = () => {
                   <span className="badge bg-light text-dark me-2">{course.category}</span>
                 )}
                 <span className="badge bg-warning text-dark">{course.level}</span>
+                {enrolled && isStudent(user) && (
+                  <span className="badge bg-success ms-2">You are enrolled</span>
+                )}
               </div>
               <h1 className="display-5 fw-bold">{course.title}</h1>
               <p className="lead mb-3">{course.description}</p>
@@ -201,7 +155,8 @@ const CourseDetail = () => {
               )}
             </div>
           </div>
-          <div className="mt-4 d-flex flex-wrap gap-2">
+
+          <div className="mt-4 d-flex flex-wrap gap-2 align-items-center">
             {canManage && (
               <Link
                 to={`/instructor/courses/${course.slug}/edit`}
@@ -210,35 +165,53 @@ const CourseDetail = () => {
                 Edit course
               </Link>
             )}
-            {isStudent(currentUser) && (
-              enrolled ? (
-                <button
-                  type="button"
-                  className="btn btn-outline-light"
-                  disabled={actionLoading}
-                  onClick={handleUnenroll}
-                >
-                  {actionLoading ? 'Processing…' : 'Unenroll'}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-light btn-lg"
-                  disabled={actionLoading}
-                  onClick={handleEnroll}
-                >
-                  {actionLoading ? 'Processing…' : 'Enroll for free'}
-                </button>
-              )
+
+            {isStudent(user) && (
+              <>
+                <EnrollButton
+                  courseSlug={course.slug}
+                  isEnrolled={enrolled}
+                  size="lg"
+                  onEnrolled={load}
+                />
+                {enrolled && (
+                  <Link
+                    to={`/courses/${course.slug}/learn`}
+                    className="btn btn-success btn-lg d-inline-flex align-items-center gap-2"
+                  >
+                    <FaPlay /> Start learning
+                  </Link>
+                )}
+                {enrolled && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-light btn-sm"
+                    disabled={actionLoading}
+                    onClick={handleUnenroll}
+                  >
+                    {actionLoading ? '…' : 'Leave course'}
+                  </button>
+                )}
+              </>
             )}
+
             {!getAccessToken() && (
-              <Link to="/login" className="btn btn-light btn-lg">
-                Log in to enroll
-              </Link>
+              <div className="d-flex flex-wrap gap-2">
+                <Link
+                  to={`/login?redirect=/courses/${course.slug}`}
+                  className="btn btn-light btn-lg"
+                >
+                  Log in to enroll
+                </Link>
+                <Link to="/signup" className="btn btn-outline-light btn-lg">
+                  Sign up as student
+                </Link>
+              </div>
             )}
-            {getAccessToken() && isInstructor(currentUser) && !canManage && (
-              <span className="text-white-50 small align-self-center">
-                Browse as instructor — switch to a student account to enroll.
+
+            {getAccessToken() && isInstructor(user) && !canManage && (
+              <span className="text-white-50 small">
+                Log in with a student account to enroll and learn.
               </span>
             )}
           </div>
@@ -246,10 +219,17 @@ const CourseDetail = () => {
       </div>
 
       <div className="container py-5">
-        <h2 className="h4 mb-4">Course content</h2>
+        <h2 className="h4 mb-3">What you will learn</h2>
+        <p className="text-muted mb-4">
+          {enrolled
+            ? 'Open the lesson player to watch videos and read materials.'
+            : 'Preview lessons marked below, or enroll to unlock everything.'}
+        </p>
+
         {modules.length === 0 && (
           <p className="text-muted">No modules published yet.</p>
         )}
+
         {modules.map((mod) => (
           <div key={mod._id || mod.order} className="card border-0 shadow-sm mb-4">
             <div className="card-header bg-white">
@@ -262,26 +242,33 @@ const CourseDetail = () => {
               {[...(mod.lessons || [])]
                 .sort((a, b) => a.order - b.order)
                 .map((lesson) => {
-                  const canView = enrolled || lesson.isPreviewable;
+                  const locked = !enrolled && !lesson.isPreviewable;
                   return (
                     <li key={lesson._id || lesson.order} className="list-group-item">
-                      <div className="d-flex justify-content-between align-items-start gap-2">
+                      <div className="d-flex justify-content-between align-items-center">
                         <div>
                           <strong>{lesson.title}</strong>
                           <span className="badge bg-secondary ms-2 text-capitalize">
                             {lesson.type}
                           </span>
                           {lesson.isPreviewable && !enrolled && (
-                            <span className="badge bg-info ms-1">Preview</span>
+                            <span className="badge bg-info ms-1">Free preview</span>
+                          )}
+                          {locked && (
+                            <span className="badge bg-light text-dark border ms-1">
+                              Enroll to unlock
+                            </span>
                           )}
                         </div>
-                        {lesson.content?.durationSec > 0 && (
-                          <small className="text-muted">
-                            {formatDuration(lesson.content.durationSec)}
-                          </small>
+                        {!locked && enrolled && (
+                          <Link
+                            to={`/courses/${course.slug}/learn`}
+                            className="btn btn-sm btn-outline-primary"
+                          >
+                            Open
+                          </Link>
                         )}
                       </div>
-                      <LessonContent lesson={lesson} canView={canView} />
                     </li>
                   );
                 })}

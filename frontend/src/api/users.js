@@ -2,7 +2,8 @@ import { API_BASE } from '../config/api';
 import { getAccessToken } from '../utils/auth';
 
 function authHeaders(json = true) {
-  const headers = { Authorization: `Bearer ${getAccessToken()}` };
+  const token = getAccessToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
   if (json) headers['Content-Type'] = 'application/json';
   return headers;
 }

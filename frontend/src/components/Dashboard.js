@@ -6,9 +6,9 @@ import {
   clearAuthSession,
   getAccessToken,
   getStoredUser,
-  saveAuthSession,
 } from '../utils/auth';
 import { dashboardPathForRole, isAdmin, isInstructor } from '../utils/rbac';
+import { getMyEnrolledCourses } from '../api/courses';
 import StudentDashboard from './dashboard/StudentDashboard';
 import InstructorDashboard from './dashboard/InstructorDashboard';
 import AdminDashboard from './dashboard/AdminDashboard';

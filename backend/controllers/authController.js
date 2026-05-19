@@ -12,7 +12,8 @@ function getFrontendUrl() {
 
 // SIGNUP
 const signup = asyncHandler(async (req, res) => {
-  const { name, email, password, role = 'student' } = req.body;
+  const { name, email, password, role: requestedRole = 'student' } = req.body;
+  const role = SIGNUP_ROLES.includes(requestedRole) ? requestedRole : 'student';
 
   if (!name || !email || !password) {
     return res.status(400).json({
@@ -153,6 +154,8 @@ const refreshToken = asyncHandler(async (req, res) => {
     });
   }
 
+  await user.revokeRefreshToken(refreshToken);
+
   const newAccessToken = user.generateAccessToken();
   const newRefreshToken = crypto.randomBytes(40).toString('hex');
 
@@ -292,9 +295,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }
 
   if (!user.password) {
-    return res.status(400).json({
-      success: false,
-      message: 'This account uses Google sign-in and does not have a password to reset.',
+    return res.status(200).json({
+      success: true,
+      message: 'If an account with that email exists, a reset link has been sent.',
     });
   }
 

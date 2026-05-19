@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { listCourses } from '../api/courses';
-import { getAccessToken } from '../utils/auth';
+import { getAccessToken, getStoredUser } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
 import Signup from './Signup';
 
 const Navbar = () => {
@@ -10,20 +11,15 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [courseLinks, setCourseLinks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const isLoggedIn = Boolean(getAccessToken());
+  const [user, setUser] = useState(getStoredUser());
 
   useEffect(() => {
     listCourses()
       .then((res) => setCourseLinks((res.data || []).slice(0, 8)))
       .catch(() => setCourseLinks([]));
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = searchQuery.trim();
-    navigate(q ? `/courses?search=${encodeURIComponent(q)}` : '/courses');
-    setIsOpen(false);
-  };
 
   useEffect(() => {
     const sync = () => setUser(getStoredUser());
@@ -32,11 +28,16 @@ const Navbar = () => {
     return () => window.removeEventListener('storage', sync);
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    listCourses()
-      .then((res) => setCourseLinks((res.data || []).slice(0, 8)))
-      .catch(() => setCourseLinks([]));
-  }, []);
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    navigate(q ? `/courses?search=${encodeURIComponent(q)}` : '/courses');
+    setIsOpen(false);
+  };
+
+  const toggleDropdown = () => setDropdownOpen((prev) => !prev);
+  const openSignup = () => setShowSignup(true);
+  const closeSignup = () => setShowSignup(false);
 
   const dashPath = user ? dashboardPathForRole(user.role) : '/dashboard';
 
@@ -118,16 +119,17 @@ const Navbar = () => {
             >
               <input
                 type="search"
-                placeholder="Search on courses page"
+                placeholder="Search courses..."
                 aria-label="Search"
-                onFocus={() => window.location.assign('/courses')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </form>
 
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
               {isLoggedIn ? (
                 <li className="nav-item">
-                  <Link className="nav-link" to="/dashboard">
+                  <Link className="nav-link" to={dashPath}>
                     Dashboard
                   </Link>
                 </li>

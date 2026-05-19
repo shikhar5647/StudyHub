@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,6 +7,7 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const AUTH_ERRORS = {
@@ -61,9 +62,7 @@ const Login = () => {
 
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      // Save tokens
-      localStorage.setItem('token', data.data.accessToken);
-      localStorage.setItem('refreshToken', data.data.refreshToken);
+      saveAuthSession(data.data);
 
       toast.success('Logged in successfully!');
       const redirect = searchParams.get('redirect');
@@ -132,9 +131,9 @@ const Login = () => {
                 </div>
                 {formErrors.password && <div className="text-danger">{formErrors.password}</div>}
                 <div className="text-end mt-1">
-                  <a href="/forgot-password" className="text-muted small">
+                  <Link to="/forgot-password" className="text-muted small">
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -156,25 +155,9 @@ const Login = () => {
 
               {/* Signup link */}
               <div className="text-left mt-3">
-                <p>Don't have an account? <a href="/signup" className="text-primary">Sign up</a></p>
+                <p>Don't have an account? <Link to="/signup" className="text-primary">Sign up</Link></p>
               </div>
             </form>
-
-            {/* Google Login Button */}
-            <div className="d-grid gap-2 mt-3">
-              <button
-                type="button"
-                className="btn btn-danger py-2"
-                onClick={() => window.location.href = `${API_URL}/google`}
-              >
-                Login with Google
-              </button>
-            </div>
-
-            {/* Signup link */}
-            <div className="text-center mt-3">
-              <p>Don't have an account? <Link to="/signup" className="text-primary">Sign up</Link></p>
-            </div>
           </div>
         </div>
       </div>

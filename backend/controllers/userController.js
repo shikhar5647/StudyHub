@@ -2,7 +2,7 @@ const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
 const { ROLE_LABELS, SIGNUP_ROLES } = require('../config/permissions');
 
-const publicProfileFields = 'name email role avatar emailVerified createdAt lastLogin preferences';
+const publicProfileFields = 'name email role avatar emailVerified createdAt lastLogin preferences enrolledCourses createdCourses';
 
 // GET /api/users/me/profile
 const getMyProfile = asyncHandler(async (req, res) => {

@@ -1,5 +1,11 @@
 import { API_BASE } from '../config/api';
 
+async function parseJson(res) {
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Request failed');
+  return data;
+}
+
 export function uploadCourseFile({ token, file, courseSlug, subfolder }) {
   const form = new FormData();
   form.append('file', file);
@@ -10,7 +16,7 @@ export function uploadCourseFile({ token, file, courseSlug, subfolder }) {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: form
-  }).then(r => r.json());
+  }).then(parseJson);
 }
 
 export function listCourseFiles({ token, courseSlug, prefix }) {
@@ -20,7 +26,7 @@ export function listCourseFiles({ token, courseSlug, prefix }) {
 
   return fetch(`${API_BASE}/api/storage/list?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
-  }).then(r => r.json());
+  }).then(parseJson);
 }
 
 export function signCourseFile({ token, key, expiresInSec = 3600 }) {
@@ -31,7 +37,7 @@ export function signCourseFile({ token, key, expiresInSec = 3600 }) {
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ key, expiresInSec })
-  }).then(r => r.json());
+  }).then(parseJson);
 }
 
 export function deleteCourseFile({ token, key }) {
@@ -42,7 +48,5 @@ export function deleteCourseFile({ token, key }) {
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ key })
-  }).then(r => r.json());
+  }).then(parseJson);
 }
-
-

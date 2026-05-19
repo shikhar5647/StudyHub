@@ -9,7 +9,7 @@ const errorHandler = (err, req, res, next) => {
     stack: err.stack,
     url: req.url,
     method: req.method,
-    body: req.body,
+    body: req.body ? Object.fromEntries(Object.entries(req.body).filter(([k]) => !['password', 'confirmPassword', 'currentPassword', 'newPassword'].includes(k))) : undefined,
     user: req.user ? req.user._id : 'Not authenticated'
   });
 

@@ -12,12 +12,6 @@ import AuthCallback from './components/AuthCallback';
 import StorageManager from './components/StorageManager';
 import CoursesList from './components/CoursesList';
 import CourseDetail from './components/CourseDetail';
-import CourseLearn from './components/CourseLearn';
-import Profile from './components/Profile';
-import InstructorHub from './components/InstructorHub';
-import AdminHub from './components/AdminHub';
-import CourseEditor from './components/instructor/CourseEditor';
-import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -31,74 +25,11 @@ function App() {
             <Route path="/team" element={<Team />} />
             <Route path="/courses" element={<CoursesList />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route
-              path="/courses/:slug/learn"
-              element={
-                <ProtectedRoute roles={['student']}>
-                  <CourseLearn />
-                </ProtectedRoute>
-              }
-            />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor"
-              element={
-                <ProtectedRoute roles={['instructor', 'admin']}>
-                  <InstructorHub />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/new"
-              element={
-                <ProtectedRoute roles={['instructor', 'admin']}>
-                  <CourseEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/:slug/edit"
-              element={
-                <ProtectedRoute roles={['instructor', 'admin']}>
-                  <CourseEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute roles={['admin']}>
-                  <AdminHub />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/storage"
-              element={
-                <ProtectedRoute roles={['instructor', 'admin']}>
-                  <StorageManager />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/storage" element={<StorageManager />} />
           </Routes>
         </main>
         <ToastContainer position="top-right" autoClose={3000} />

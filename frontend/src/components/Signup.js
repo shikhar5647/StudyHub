@@ -7,8 +7,6 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
-import { dashboardPathForRole } from '../utils/rbac';
-import { getSignupRoles } from '../api/users';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const Signup = () => {
@@ -30,7 +28,7 @@ const Signup = () => {
       .then((res) => {
         if (res.data?.length) setSignupRoles(res.data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -94,7 +92,7 @@ const Signup = () => {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
-            <div className="card shadow-lg border-0" style={{borderRadius: '1rem'}}>
+            <div className="card shadow-lg border-0" style={{ borderRadius: '1rem' }}>
               <div className="card-header text-center bg-primary text-white">
                 <h3 className="my-3">Create Your Account</h3>
               </div>

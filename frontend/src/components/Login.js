@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,7 +7,6 @@ import '../App.css';
 
 import { AUTH_API } from '../config/api';
 import { saveAuthSession } from '../utils/auth';
-import { dashboardPathForRole } from '../utils/rbac';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const AUTH_ERRORS = {
@@ -23,20 +22,13 @@ const Login = () => {
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Handle Google OAuth redirect tokens
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const accessToken = query.get('accessToken');
-    const refreshToken = query.get('refreshToken');
-
-    if (accessToken) {
-      localStorage.setItem('token', accessToken);
-      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-
-      toast.success('Logged in successfully via Google!');
-      navigate('/dashboard');
+    const code = searchParams.get('error');
+    if (code && AUTH_ERRORS[code]) {
+      toast.error(AUTH_ERRORS[code]);
+      setSearchParams({}, { replace: true });
     }
-  }, [navigate]);
+  }, [searchParams, setSearchParams]);
 
   const updateFormData = (e) => {
     const { name, value } = e.target;
@@ -146,6 +138,20 @@ const Login = () => {
                 <button type="submit" className="btn btn-primary py-2" disabled={loading}>
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
+              </div>
+
+              <div className="position-relative my-4 text-center">
+                <hr />
+                <span className="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                  or
+                </span>
+              </div>
+
+              <GoogleSignInButton label="Sign in with Google" />
+
+              {/* Signup link */}
+              <div className="text-left mt-3">
+                <p>Don't have an account? <a href="/signup" className="text-primary">Sign up</a></p>
               </div>
             </form>
 

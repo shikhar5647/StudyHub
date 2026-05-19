@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { listCourses } from '../api/courses';
-import { getAccessToken, getStoredUser } from '../utils/auth';
-import { dashboardPathForRole, isAdmin, isInstructor } from '../utils/rbac';
+import { getAccessToken } from '../utils/auth';
 import Signup from './Signup';
 
 const Navbar = () => {
@@ -12,9 +10,13 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [courseLinks, setCourseLinks] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [user, setUser] = useState(getStoredUser());
   const isLoggedIn = Boolean(getAccessToken());
+
+  useEffect(() => {
+    listCourses()
+      .then((res) => setCourseLinks((res.data || []).slice(0, 8)))
+      .catch(() => setCourseLinks([]));
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -76,15 +78,18 @@ const Navbar = () => {
                 <button
                   type="button"
                   className="nav-link dropdown-toggle btn btn-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setDropdownOpen(!dropdownOpen);
-                  }}
+                  onClick={toggleDropdown}
+                  aria-expanded={dropdownOpen}
                   style={{ textDecoration: 'none' }}
                 >
                   Browse
                 </button>
                 <ul className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}>
+                  {courseLinks.length === 0 && (
+                    <li>
+                      <span className="dropdown-item text-muted">Loading…</span>
+                    </li>
+                  )}
                   {courseLinks.map((course) => (
                     <li key={course._id}>
                       <Link
@@ -99,7 +104,7 @@ const Navbar = () => {
                   <li><hr className="dropdown-divider" /></li>
                   <li>
                     <Link className="dropdown-item" to="/courses">
-                      View all
+                      View all courses
                     </Link>
                   </li>
                 </ul>
@@ -113,46 +118,19 @@ const Navbar = () => {
             >
               <input
                 type="search"
-                className="form-control"
-                placeholder="Search courses…"
-                aria-label="Search courses"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search on courses page"
+                aria-label="Search"
+                onFocus={() => window.location.assign('/courses')}
               />
-              <button type="submit" className="btn btn-primary ms-2 d-flex align-items-center">
-                <FaSearch />
-                <span className="d-none d-sm-inline ms-1">Search</span>
-              </button>
             </form>
 
-            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+            <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
               {isLoggedIn ? (
-                <>
-                  <li className="nav-item">
-                    <Link className="nav-link" to={dashPath}>
-                      Dashboard
-                    </Link>
-                  </li>
-                  {(isInstructor(user) || isAdmin(user)) && (
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/instructor/courses/new">
-                        Create course
-                      </Link>
-                    </li>
-                  )}
-                  {isAdmin(user) && (
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/admin">
-                        Admin
-                      </Link>
-                    </li>
-                  )}
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/profile">
-                      Profile
-                    </Link>
-                  </li>
-                </>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/dashboard">
+                    Dashboard
+                  </Link>
+                </li>
               ) : (
                 <>
                   <li className="nav-item">
@@ -164,10 +142,7 @@ const Navbar = () => {
                     <button
                       type="button"
                       className="nav-link btn btn-link"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowSignup(true);
-                      }}
+                      onClick={openSignup}
                       style={{ textDecoration: 'none' }}
                     >
                       Sign Up
@@ -183,7 +158,7 @@ const Navbar = () => {
       {showSignup && (
         <div className="signup-overlay">
           <div className="signup-modal">
-            <button type="button" className="btn-close float-end" onClick={() => setShowSignup(false)} aria-label="Close" />
+            <button type="button" className="btn-close float-end" onClick={closeSignup} aria-label="Close" />
             <Signup />
           </div>
         </div>

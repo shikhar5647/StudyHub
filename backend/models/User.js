@@ -41,7 +41,9 @@ const userSchema = new Schema({
   }],
   emailVerified: { type: Boolean, default: false },
   emailVerificationToken: { type: String, select: false },
+  emailVerificationExpires: { type: Date, select: false },
   passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
   lastLogin: Date,
   preferences: {
     theme: { type: String, enum: ['dark','light'], default: 'dark' },
@@ -91,6 +93,24 @@ userSchema.methods.revokeRefreshToken = async function(plainToken) {
   if (!this.refreshTokens) return;
   this.refreshTokens = this.refreshTokens.filter(t => !(bcrypt.compareSync(plainToken, t.tokenHash)));
   await this.save();
+};
+
+// Generate a raw email verification token, store its SHA256 hash, return raw token
+userSchema.methods.createEmailVerificationToken = function() {
+  const rawToken = require('crypto').randomBytes(32).toString('hex');
+  const hash = require('crypto').createHash('sha256').update(rawToken).digest('hex');
+  this.emailVerificationToken = hash;
+  this.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  return rawToken;
+};
+
+// Generate a raw password reset token, store its SHA256 hash, return raw token
+userSchema.methods.createPasswordResetToken = function() {
+  const rawToken = require('crypto').randomBytes(32).toString('hex');
+  const hash = require('crypto').createHash('sha256').update(rawToken).digest('hex');
+  this.passwordResetToken = hash;
+  this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1h
+  return rawToken;
 };
 
 const User = mongoose.model('User', userSchema);

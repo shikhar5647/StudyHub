@@ -19,10 +19,18 @@ const app = express();
 // ---------------- Security & Rate Limit ----------------
 app.use(helmet());
 
+const isDev = process.env.NODE_ENV !== 'production';
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 2000 : 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many requests. Please wait a moment and try again.',
+    });
+  },
 });
 app.use('/api/', limiter);
 

@@ -7,9 +7,19 @@ function authHeaders() {
 }
 
 async function parseJson(res) {
-  const data = await res.json();
+  const text = await res.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        throw new Error(text.slice(0, 120) || 'Request failed');
+      }
+    }
+  }
   if (!res.ok) {
-    const err = new Error(data.message || 'Request failed');
+    const err = new Error(data.message || `Request failed (${res.status})`);
     err.status = res.status;
     throw err;
   }

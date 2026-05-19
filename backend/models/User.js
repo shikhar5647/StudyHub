@@ -1,4 +1,3 @@
-// models/user.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -12,14 +11,14 @@ const userSchema = new Schema({
     type: String, required: true, unique: true, lowercase: true, trim: true,
     match: [/.+\@.+\..+/, 'Please fill a valid email address']
   },
-  password: { type: String, select: false }, // only for local auth
+  password: { type: String, select: false },
   role: { type: String, enum: ['student','instructor','admin'], default: 'student' },
   avatar: { type: String, default: 'https://via.placeholder.com/150' },
-  providers: { // support multiple OAuth providers
+  providers: {
     google: { id: { type: String, index: true, sparse: true }, emailVerified: Boolean },
     facebook: { id: { type: String, index: true, sparse: true }, emailVerified: Boolean }
   },
-  refreshTokens: [{ // store hashed refresh tokens (for revocation)
+  refreshTokens: [{
     tokenHash: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date }
@@ -33,7 +32,7 @@ const userSchema = new Schema({
     completedAt: { type: Date },
   }],
   createdCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
-  notes: [{ // personal notes saved by student for courses
+  notes: [{
     course: { type: Schema.Types.ObjectId, ref: 'Course' },
     title: String,
     markdown: String,
@@ -63,13 +62,11 @@ userSchema.methods.comparePassword = async function(plain) {
   return bcrypt.compare(plain, this.password);
 };
 
-// generate JWT access token
 userSchema.methods.generateAccessToken = function() {
   const payload = { sub: this._id, role: this.role };
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES || '15m' });
 };
 
-// store hashed refresh token
 userSchema.methods.addRefreshToken = async function(plainToken) {
   const salt = await bcrypt.genSalt(10);
   const tokenHash = await bcrypt.hash(plainToken, salt);
@@ -78,15 +75,21 @@ userSchema.methods.addRefreshToken = async function(plainToken) {
   await this.save();
 };
 
-// revoke a refresh token by comparing hashes
-userSchema.methods.revokeRefreshToken = async function(plainToken) {
-  const tokens = this.refreshTokens || [];
-  const keep = [];
-  for (let t of tokens) {
-    const ok = await bcrypt.compare(plainToken, t.tokenHash);
-    if (!ok) keep.push(t);
+// Verify a refresh token without revoking
+userSchema.methods.verifyRefreshToken = async function(plainToken) {
+  if (!this.refreshTokens) return false;
+
+  for (let t of this.refreshTokens) {
+    const isMatch = await bcrypt.compare(plainToken, t.tokenHash);
+    if (isMatch && t.expiresAt > new Date()) return true;
   }
-  this.refreshTokens = keep;
+  return false;
+};
+
+// Revoke a refresh token
+userSchema.methods.revokeRefreshToken = async function(plainToken) {
+  if (!this.refreshTokens) return;
+  this.refreshTokens = this.refreshTokens.filter(t => !(bcrypt.compareSync(plainToken, t.tokenHash)));
   await this.save();
 };
 

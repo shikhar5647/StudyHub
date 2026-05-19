@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,13 +23,20 @@ const Login = () => {
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Handle Google OAuth redirect tokens
   useEffect(() => {
-    const code = searchParams.get('error');
-    if (code && AUTH_ERRORS[code]) {
-      toast.error(AUTH_ERRORS[code]);
-      setSearchParams({}, { replace: true });
+    const query = new URLSearchParams(window.location.search);
+    const accessToken = query.get('accessToken');
+    const refreshToken = query.get('refreshToken');
+
+    if (accessToken) {
+      localStorage.setItem('token', accessToken);
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+
+      toast.success('Logged in successfully via Google!');
+      navigate('/dashboard');
     }
-  }, [searchParams, setSearchParams]);
+  }, [navigate]);
 
   const updateFormData = (e) => {
     const { name, value } = e.target;
@@ -62,7 +69,9 @@ const Login = () => {
 
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      saveAuthSession(data.data);
+      // Save tokens
+      localStorage.setItem('token', data.data.accessToken);
+      localStorage.setItem('refreshToken', data.data.refreshToken);
 
       toast.success('Logged in successfully!');
       const redirect = searchParams.get('redirect');
@@ -80,7 +89,7 @@ const Login = () => {
 
   return (
     <div className="login-container py-5">
-      <div className="container d-flex justify-content-center align-items-center" style={{ width: '360px', height: '576px' }}>
+      <div className="container d-flex justify-content-center align-items-center" style={{ width: '360px', height: '640px' }}>
         <div className="card shadow-lg border-0" style={{ borderRadius: '1rem', width: '100%' }}>
           <div className="card-header text-left bg-primary text-white">
             <h3 className="my-3">Log In</h3>
@@ -133,26 +142,28 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <div className="d-grid gap-2">
+              <div className="d-grid gap-2 mb-3">
                 <button type="submit" className="btn btn-primary py-2" disabled={loading}>
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
               </div>
-
-              <div className="position-relative my-4 text-center">
-                <hr />
-                <span className="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
-                  or
-                </span>
-              </div>
-
-              <GoogleSignInButton label="Sign in with Google" />
-
-              {/* Signup link */}
-              <div className="text-left mt-3">
-                <p>Don't have an account? <a href="/signup" className="text-primary">Sign up</a></p>
-              </div>
             </form>
+
+            {/* Google Login Button */}
+            <div className="d-grid gap-2 mt-3">
+              <button
+                type="button"
+                className="btn btn-danger py-2"
+                onClick={() => window.location.href = `${API_URL}/google`}
+              >
+                Login with Google
+              </button>
+            </div>
+
+            {/* Signup link */}
+            <div className="text-center mt-3">
+              <p>Don't have an account? <Link to="/signup" className="text-primary">Sign up</Link></p>
+            </div>
           </div>
         </div>
       </div>
@@ -161,4 +172,3 @@ const Login = () => {
 };
 
 export default Login;
-

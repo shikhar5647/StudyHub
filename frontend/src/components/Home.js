@@ -4,8 +4,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaRocket, FaLaptopCode, FaQuoteLeft, FaQuoteRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import HomeCourses from './HomeCourses';
+import { getAccessToken, getStoredUser } from '../utils/auth';
+import { dashboardPathForRole } from '../utils/rbac';
 
 const Home = () => {
+  const isLoggedIn = Boolean(getAccessToken());
+  const user = getStoredUser();
+  const dashPath = user ? dashboardPathForRole(user.role) : '/dashboard';
+
   // Educational quotes
   const quotes = [
     {
@@ -58,13 +64,23 @@ const Home = () => {
                   >
                     <FaRocket className="me-2" /> Explore Courses
                   </Link>
-                  <Link
-                    to="/signup"
-                    className="btn btn-outline-light btn-lg px-4 py-2"
-                    style={{ transition: 'all 0.3s ease' }}
-                  >
-                    <FaLaptopCode className="me-2" /> Get Started
-                  </Link>
+                  {isLoggedIn ? (
+                    <Link
+                      to={dashPath}
+                      className="btn btn-outline-light btn-lg px-4 py-2"
+                      style={{ transition: 'all 0.3s ease' }}
+                    >
+                      <FaLaptopCode className="me-2" /> Go to Dashboard
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/signup"
+                      className="btn btn-outline-light btn-lg px-4 py-2"
+                      style={{ transition: 'all 0.3s ease' }}
+                    >
+                      <FaLaptopCode className="me-2" /> Get Started
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

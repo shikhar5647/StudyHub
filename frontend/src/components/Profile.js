@@ -52,8 +52,30 @@ const Profile = () => {
           <p className="small text-muted">
             Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
           </p>
+          <div className="d-flex justify-content-center gap-4 mt-3">
+            <div className="text-center">
+              <h4 className="text-success mb-0">{user?.xp || 0}</h4>
+              <small className="text-muted">XP</small>
+            </div>
+            <div className="text-center">
+              <h4 className="text-warning mb-0">🔥 {user?.streak?.current || 0}</h4>
+              <small className="text-muted">Day Streak</small>
+            </div>
+          </div>
         </div>
         <ul className="list-group list-group-flush">
+          {user?.badges && user.badges.length > 0 && (
+            <li className="list-group-item">
+              <span className="d-block mb-2"><strong>Badges</strong></span>
+              <div className="d-flex gap-2 flex-wrap">
+                {user.badges.map((b, i) => (
+                  <span key={i} className="badge bg-primary rounded-pill px-3 py-2">
+                    🏆 {b.name}
+                  </span>
+                ))}
+              </div>
+            </li>
+          )}
           {user?.role === 'student' && (
             <li className="list-group-item d-flex justify-content-between">
               <span>Enrolled courses</span>

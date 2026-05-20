@@ -3,6 +3,54 @@ const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
 const { sendCourseCompletionEmail } = require('../services/emailService');
 
+function updateGamification(user, isNewComplete, justFinishedCourse, lessonType) {
+  let xpGained = 0;
+  let newBadges = [];
+
+  const now = new Date();
+  if (!user.streak) user.streak = { current: 0, longest: 0, lastActive: null };
+  const lastActive = user.streak.lastActive;
+
+  if (lastActive) {
+    const diffTime = Math.abs(now.setHours(0,0,0,0) - new Date(lastActive).setHours(0,0,0,0));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      user.streak.current += 1;
+      if (user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+    } else if (diffDays > 1) {
+      user.streak.current = 1;
+    }
+  } else {
+    user.streak.current = 1;
+    user.streak.longest = 1;
+  }
+  user.streak.lastActive = new Date();
+
+  if (user.streak.current === 7 && !user.badges.some(b => b.name === '7-Day Streak')) {
+    user.badges.push({ name: '7-Day Streak', earnedAt: new Date() });
+    newBadges.push('7-Day Streak');
+  }
+
+  if (isNewComplete) {
+    xpGained += 10;
+    if (lessonType === 'quiz' && !user.badges.some(b => b.name === 'Quiz Master')) {
+       user.badges.push({ name: 'Quiz Master', earnedAt: new Date() });
+       newBadges.push('Quiz Master');
+    }
+  }
+  if (justFinishedCourse) {
+    xpGained += 50;
+    if (!user.badges.some(b => b.name === 'First Course')) {
+       user.badges.push({ name: 'First Course', earnedAt: new Date() });
+       newBadges.push('First Course');
+    }
+  }
+
+  user.xp = (user.xp || 0) + xpGained;
+  return { xpGained, newBadges };
+}
+
 function countLessons(course) {
   let n = 0;
   (course.modules || []).forEach((m) => {
@@ -129,8 +177,10 @@ const markLessonComplete = asyncHandler(async (req, res) => {
     entry = findProgressEntry(user, course._id);
   }
 
+  let isNewComplete = false;
   if (!entry.completedLessonIds.includes(lessonId)) {
     entry.completedLessonIds.push(lessonId);
+    isNewComplete = true;
   }
   entry.lastLessonId = lessonId;
   entry.lastAccessedAt = new Date();
@@ -141,6 +191,17 @@ const markLessonComplete = asyncHandler(async (req, res) => {
   if (justCompleted) {
     entry.completedAt = new Date();
   }
+
+  // Find lesson type
+  let lessonType = 'video';
+  course.modules.forEach(m => {
+    m.lessons.forEach(l => {
+      const id = l._id?.toString() || `${m._id}-${l.order}`; // Fallback if _id is missing
+      if (id === lessonId || l._id?.toString() === lessonId) lessonType = l.type;
+    });
+  });
+
+  const { xpGained, newBadges } = updateGamification(user, isNewComplete, justCompleted, lessonType);
 
   await user.save();
 
@@ -153,6 +214,7 @@ const markLessonComplete = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: buildProgressPayload(course, entry),
+    gamification: { xpGained, newBadges, currentXp: user.xp, streak: user.streak }
   });
 });
 

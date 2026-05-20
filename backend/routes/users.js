@@ -7,10 +7,21 @@ const {
   getSignupRoles,
   listUsers,
   updateUserRole,
+  getLeaderboard,
+  getNotes,
+  createNote,
+  deleteNote
 } = require('../controllers/userController');
 
 router.get('/roles', getSignupRoles);
 router.get('/me/profile', protect, getMyProfile);
+router.get('/leaderboard', getLeaderboard); // Gamification Leaderboard
+
+// Notes routes
+router.get('/me/notes', protect, getNotes);
+router.post('/me/notes', protect, createNote);
+router.delete('/me/notes/:id', protect, deleteNote);
+
 router.get('/', protect, requirePermission('user:list'), listUsers);
 router.patch(
   '/:id/role',

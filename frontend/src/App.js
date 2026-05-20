@@ -15,6 +15,7 @@ import CourseDetail from './components/CourseDetail';
 import Profile from './components/Profile';
 import InstructorHub from './components/InstructorHub';
 import AdminHub from './components/AdminHub';
+import Leaderboard from './components/Leaderboard';
 import CourseEditor from './components/instructor/CourseEditor';
 import CourseLearn from './components/CourseLearn';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -34,6 +35,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/team" element={<Team />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/courses" element={<CoursesList />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route

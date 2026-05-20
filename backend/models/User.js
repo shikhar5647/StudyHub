@@ -34,10 +34,21 @@ const userSchema = new Schema({
   createdCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
   notes: [{
     course: { type: Schema.Types.ObjectId, ref: 'Course' },
+    lessonId: String,
     title: String,
     markdown: String,
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date
+  }],
+  xp: { type: Number, default: 0 },
+  streak: {
+    current: { type: Number, default: 0 },
+    longest: { type: Number, default: 0 },
+    lastActive: { type: Date }
+  },
+  badges: [{
+    name: String,
+    earnedAt: { type: Date, default: Date.now }
   }],
   emailVerified: { type: Boolean, default: false },
   emailVerificationToken: { type: String, select: false },

@@ -1,0 +1,10 @@
+.leaderboard-container {
+  max-width: 800px;
+}
+.list-group-item {
+  transition: transform 0.2s;
+}
+.list-group-item:hover {
+  transform: scale(1.02);
+  z-index: 1;
+}

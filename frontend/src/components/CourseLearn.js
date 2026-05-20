@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import FlashcardQuiz from './FlashcardQuiz';
+import NotesPanel from './NotesPanel';
 import { getCourse } from '../api/courses';
 import {
   getCourseProgress,
@@ -245,6 +246,7 @@ const CourseLearn = () => {
 
         <div className="col-lg-8 col-xl-9">
           {active ? (
+            <>
             <div className="card border-0 shadow-sm">
               <div className="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
@@ -264,6 +266,8 @@ const CourseLearn = () => {
               </div>
               <div className="card-body">{renderLessonBody(active.lesson)}</div>
             </div>
+            <NotesPanel courseId={course._id} lessonId={active.key} />
+          </>
           ) : (
             <p className="text-muted">No lessons in this course yet.</p>
           )}

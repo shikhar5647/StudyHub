@@ -37,3 +37,23 @@ export function updateUserRole(userId, role) {
     body: JSON.stringify({ role }),
   }).then(parseJson);
 }
+
+export function getLeaderboard() {
+  return fetch(`${API_BASE}/api/users/leaderboard`, {
+    headers: authHeaders(false),
+  }).then(parseJson);
+}
+
+export function getNotes() {
+  return fetch(`${API_BASE}/api/users/me/notes`, {
+    headers: authHeaders(false),
+  }).then(parseJson);
+}
+
+export function saveNote(data) {
+  return fetch(`${API_BASE}/api/users/me/notes`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  }).then(parseJson);
+}

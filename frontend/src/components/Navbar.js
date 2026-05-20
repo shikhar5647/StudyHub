@@ -78,6 +78,11 @@ const Navbar = () => {
                   Team
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/leaderboard">
+                  Leaderboard
+                </Link>
+              </li>
               <li className="nav-item dropdown">
                 <button
                   type="button"
@@ -139,13 +144,21 @@ const Navbar = () => {
               {theme === 'dark' ? <FaSun size={16} /> : <FaMoon size={16} />}
             </button>
 
-            <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
               {isLoggedIn ? (
-                <li className="nav-item">
-                  <Link className="nav-link" to={dashPath}>
-                    Dashboard
-                  </Link>
-                </li>
+                <>
+                  <li className="nav-item me-3 text-warning fw-bold">
+                    🔥 {user?.streak?.current || 0}
+                  </li>
+                  <li className="nav-item me-3 text-success fw-bold">
+                    {user?.xp || 0} XP
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" to={dashPath}>
+                      Dashboard
+                    </Link>
+                  </li>
+                </>
               ) : (
                 <>
                   <li className="nav-item">

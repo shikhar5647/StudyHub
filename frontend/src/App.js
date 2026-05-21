@@ -22,6 +22,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import VerifyEmail from './components/VerifyEmail';
+import DiscussionList from './components/DiscussionList';
+import DiscussionDetail from './components/DiscussionDetail';
+import CreateDiscussion from './components/CreateDiscussion';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
@@ -52,6 +55,24 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/discussions" element={<DiscussionList />} />
+            <Route
+              path="/discussions/new"
+              element={
+                <ProtectedRoute>
+                  <CreateDiscussion />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/discussions/:slug/edit"
+              element={
+                <ProtectedRoute>
+                  <CreateDiscussion />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/discussions/:slug" element={<DiscussionDetail />} />
 
             <Route
               path="/dashboard"

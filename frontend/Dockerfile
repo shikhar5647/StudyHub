@@ -23,7 +23,7 @@ COPY --from=builder /app/build /usr/share/nginx/html
 
 # Add a basic configuration for React Router to handle client-side routing
 RUN echo 'server { \
-    listen 80; \
+    listen 3000; \
     location / { \
         root /usr/share/nginx/html; \
         index index.html index.htm; \
@@ -31,8 +31,8 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose port 80
-EXPOSE 80
+# Expose port 3000
+EXPOSE 3000
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

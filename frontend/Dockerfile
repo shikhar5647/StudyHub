@@ -1,13 +1,13 @@
 # Stage 1: Build the React application
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (increased timeout for slow connections)
+RUN npm install --network-timeout=1000000
 
 # Copy source code
 COPY . .

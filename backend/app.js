@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth');
 const storageRoutes = require('./routes/storage');
 const courseRoutes = require('./routes/courses');
 const userRoutes = require('./routes/users');
+const discussionRoutes = require('./routes/discussions');
 
 require('./config/passport')(passport); // call the function and pass passport
 
@@ -65,6 +66,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/discussions', discussionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

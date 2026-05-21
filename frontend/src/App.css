@@ -255,3 +255,37 @@ body {
 .create-btn:hover {
   background-color: var(--accent-light);
 }
+
+/* ===== Discussion forum styles ===== */
+.discussion-row {
+  transition: background-color 0.15s ease;
+}
+
+.discussion-row:hover {
+  background-color: var(--accent-light);
+}
+
+.discussion-row:last-child {
+  border-bottom: none !important;
+}
+
+.discussion-title {
+  color: var(--text-primary);
+}
+
+.discussion-title:hover {
+  color: var(--accent);
+}
+
+[data-theme="dark"] .discussion-row:hover {
+  background-color: rgba(99, 102, 241, 0.08);
+}
+
+[data-theme="dark"] .badge.bg-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-opacity-10 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}

@@ -1,120 +1,269 @@
-# StudyHub 🚀
+# StudyHub
 
-**Online Learning Management System** built to empower learners and content creators through a seamless educational experience.
+A full-stack online learning platform where students can enroll in courses, watch video lessons, take quizzes, earn certificates, and discuss topics with the community. Instructors can create and manage courses, while admins oversee the entire platform.
+
+Built with React, Node.js, Express, and MongoDB.
 
 ---
 
-## 🌟 Project Overview
+## Features
 
-StudyHub is a modern, web-based LMS designed to help students learn, practice, and grow—anytime, anywhere. Whether you’re a **student** seeking structured courses or a **content creator** crafting engaging lessons, StudyHub offers a polished, intuitive platform that adapts to your needs.
+### For Students
+- **Course Enrollment** — Browse, search, and enroll in published courses
+- **Video Lessons** — Watch embedded YouTube lectures organized into modules
+- **Flashcard & MCQ Quizzes** — Interactive quizzes with flip cards and multiple-choice questions with instant feedback
+- **Progress Tracking** — Track completed lessons with a visual progress bar and resume where you left off
+- **Certificates** — Download a PDF certificate with the StudyHub logo upon completing all lessons in a course
+- **Discussion Forum** — Post questions, reply with threaded comments, upvote/downvote, and accept answers (inspired by LeetCode Discuss)
+- **Notes Panel** — Take personal notes while learning
+- **Leaderboard** — XP-based rankings with streak tracking and badges
+- **Dark Mode** — Toggle between light and dark themes, persisted across sessions
 
-Built by **Shikhar** and **Mahek**, StudyHub harnesses the latest in web, database and AI :
+### For Instructors
+- **Course Editor** — Create courses with modules, lessons (video/note/quiz types), and publish them
+- **Dashboard** — View created courses, enrollment counts, and course reviews
+- **File Storage** — Upload and manage course assets via Supabase storage
 
-* **Personalized Learning Paths** powered by AI-driven recommendations
-* **Interactive Content**: embedded videos, downloadable notes, and hands-on problem sets
-* **Real-time Progress Tracking** and performance analytics
-* **Role-based Access Control**: distinct student and creator dashboards
+### For Admins
+- **Admin Dashboard** — Manage users, courses, and platform-wide settings
+- **Discussion Moderation** — Pin or close discussion threads
 
-## 🔧 Key Features
+### Platform-Wide
+- **Authentication** — JWT-based auth with access + refresh token rotation, Google OAuth, email verification, and password reset
+- **Role-Based Access Control** — Separate permissions for students, instructors, and admins
+- **Email Notifications** — Automated emails for welcome, enrollment confirmation, and course completion
+- **Responsive Design** — Mobile-friendly UI built with Bootstrap 5
+- **Security** — Helmet, rate limiting, CORS configuration, input sanitization, and secure session handling
 
-1. **Role Selection & Authentication**
+---
 
-   * OAuth2 & JWT-based login for secure, hassle-free access.
-   * Role-based dashboards for **Students** and **Content Creators**.
+## Tech Stack
 
-2. **Dynamic Course Management**
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, React Router 7, Bootstrap 5, React Icons, React Toastify |
+| Backend | Node.js, Express 4, Passport.js (Local + Google OAuth) |
+| Database | MongoDB Atlas with Mongoose ODM |
+| File Storage | Supabase Storage |
+| PDF Generation | PDFKit |
+| Email | Nodemailer (Gmail / SMTP) |
+| Auth | JWT (access + refresh tokens), bcrypt |
+| Containerization | Docker, Docker Compose |
 
-   * Create, update, and organize courses with modules (Video, Notes, Problems).
-   * Presigned-upload for notes and resources via AWS S3.
+---
 
-3. **AI-Assisted Learning**
-
-   * Smart course recommendations based on learning history.
-   * Chatbot assistant for instant Q\&A and study tips.
-
-4. **Rich Media & Interactivity**
-
-   * YouTube video embeds for high-quality lessons.
-   * Markdown and PDF viewers for clean, printable notes.
-   * Integrated code runner for problem sets and quizzes.
-
-5. **Performance & Scalability**
-
-   * **MongoDB** for flexible, schema-less course data.
-   * **Redis** for caching hot content and sessions, ensuring lightning-fast load times.
-   * Containerized deployment with Docker & Kubernetes for effortless scaling.
-
-## 🏗️ Architecture & Tech Stack
+## Project Structure
 
 ```
-Frontend  ↔  API Gateway  ↔  Backend  ↔  MongoDB Atlas
-                                     ↔  Redis Cache
-                                     ↔  AWS S3 Storage
+StudyHub/
+├── backend/
+│   ├── assets/              # Static assets (logo for certificates)
+│   ├── config/              # Passport strategies, permissions config
+│   ├── controllers/         # Route handlers (auth, courses, progress, discussions, certificates)
+│   ├── middleware/           # Auth, RBAC, error handling, rate limiting
+│   ├── models/              # Mongoose schemas (User, Course, Discussion, Comment, Review)
+│   ├── routes/              # Express route definitions
+│   ├── scripts/             # Seed scripts for courses and users
+│   ├── services/            # Email service, certificate generator, Supabase client
+│   ├── utils/               # Token issuance helpers
+│   ├── app.js               # Express app configuration
+│   ├── server.js            # Server entry point
+│   └── db.js                # MongoDB connection
+│
+├── frontend/
+│   ├── public/              # Static files, logo
+│   └── src/
+│       ├── api/             # API client functions (courses, progress, discussions, users)
+│       ├── components/      # React components
+│       │   ├── dashboard/   # Role-specific dashboards (Student, Instructor, Admin)
+│       │   └── instructor/  # Course editor
+│       ├── config/          # API base URL configuration
+│       ├── context/         # React contexts (ThemeContext)
+│       └── utils/           # Auth helpers, RBAC utilities
+│
+├── docker-compose.yml       # Multi-container Docker setup
+└── render.yaml              # Render deployment blueprint
 ```
 
-* **Frontend**: React + Tailwind CSS + Vite for a snappy SPA experience.
-* **Backend**: Node.js, Express.js, Passport.js (JWT + OAuth2).
-* **Database**: MongoDB Atlas (NoSQL) with Mongoose ORM.
-* **Cache**: Redis for rapid data access.
-* **Storage**: AWS S3 for course assets.
-* **Deployment**: Docker, GitHub Actions CI/CD, AWS ECS / EKS.
+---
 
-## 🚀 Getting Started
+## Getting Started
 
-1. **Clone the repo**
+### Prerequisites
+- Node.js 20+
+- npm
+- MongoDB Atlas account (or local MongoDB)
+- Google Cloud Console project (for OAuth — optional)
+- Supabase project (for file storage — optional)
 
-   ```bash
-   git clone https://github.com/shikhar5647/StudyHub.git
-   cd StudyHub
-   ```
+### 1. Clone the Repository
 
-2. **Environment Setup**
+```bash
+git clone https://github.com/shikhar5647/StudyHub.git
+cd StudyHub
+```
 
-   * Copy `.env.example` to `.env` in both `frontend/` and `backend/`.
-   * Fill in your MongoDB, Redis, OAuth, and AWS S3 credentials.
+### 2. Backend Setup
 
-3. **Launch Locally**
+```bash
+cd backend
+npm install
+```
 
-   ```bash
-   # Start services
-   docker-compose up --build
+Create a `.env` file in the `backend/` directory:
 
-   # Frontend
-   cd frontend && npm install && npm start
+```env
+MONGO_URI=your_mongodb_connection_string
+PORT=5001
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES=15m
+SESSION_SECRET=your_session_secret
+FRONTEND_URL=http://localhost:3001
 
-   # Backend
-   cd backend && npm install && npm run dev
-   ```
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:5001/api/auth/google/callback
 
-4. **Explore**
+# Supabase (optional — for file storage)
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 
-   * Frontend: `http://localhost:3000`
-   * Backend API docs (Swagger): `http://localhost:4000/api-docs`
+# Email (optional — for notifications)
+GMAIL_USER=your_gmail@gmail.com
+GMAIL_APP_PASS=your_gmail_app_password
+```
 
-## 📱 Applications & Use Cases
+Start the backend:
 
-* **Self-Paced Learning**: Ideal for individual learners tackling new skills.
-* **Classroom Supplement**: Teachers can upload curated modules for hybrid instruction.
-* **Corporate Training**: Onboard employees with interactive tutorials and assessments.
+```bash
+npm run dev
+```
 
-## 🤝 Contributing
+### 3. Frontend Setup
 
-We welcome contributions! Please:
+```bash
+cd frontend
+npm install
+```
 
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feat/my-feature`)
-3. Commit your changes (`git commit -m "feat: add new feature"`)
-4. Push and open a Pull Request
+Create a `.env` file in the `frontend/` directory:
 
-## 🧑‍💻 Authors
+```env
+REACT_APP_API_URL=http://localhost:5001
+PORT=3001
+```
 
-* **Shikhar** 
-* **Mahek** 
+Start the frontend:
 
-## 📜 License
+```bash
+npm start
+```
+
+### 4. Seed Data (Optional)
+
+Populate the database with sample courses and users:
+
+```bash
+cd backend
+npm run seed:courses
+npm run seed:users
+```
+
+### 5. Open the App
+
+- Frontend: [http://localhost:3001](http://localhost:3001)
+- Backend API: [http://localhost:5001/api/health](http://localhost:5001/api/health)
+
+---
+
+## Docker Setup
+
+Run the entire stack with Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+This starts MongoDB, the backend API, and the frontend in containers.
+
+---
+
+## API Endpoints
+
+### Auth (`/api/auth`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/signup` | Register a new user |
+| POST | `/login` | Login with email/password |
+| POST | `/refresh` | Refresh access token |
+| POST | `/logout` | Logout and revoke refresh token |
+| POST | `/forgot-password` | Send password reset email |
+| POST | `/reset-password` | Reset password with token |
+| GET | `/verify-email` | Verify email address |
+| GET | `/google` | Initiate Google OAuth |
+| GET | `/google/callback` | Google OAuth callback |
+
+### Courses (`/api/courses`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | List all published courses |
+| GET | `/categories/list` | Get course categories |
+| GET | `/:slugOrId` | Get course details |
+| POST | `/` | Create a course (instructor) |
+| PUT | `/:slugOrId` | Update a course (instructor) |
+| DELETE | `/:slugOrId` | Delete a course (instructor) |
+| POST | `/:slugOrId/enroll` | Enroll in a course (student) |
+| GET | `/:slugOrId/certificate` | Download completion certificate (student) |
+| GET | `/:slugOrId/progress` | Get course progress (student) |
+| POST | `/:slugOrId/progress/lessons/:lessonId/complete` | Mark lesson complete |
+
+### Discussions (`/api/discussions`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | List discussions (search, filter, sort, paginate) |
+| GET | `/:slugOrId` | Get discussion with comments |
+| POST | `/` | Create a discussion |
+| PUT | `/:slugOrId` | Update a discussion |
+| DELETE | `/:slugOrId` | Delete a discussion |
+| POST | `/:slugOrId/vote` | Upvote/downvote a discussion |
+| POST | `/:slugOrId/comments` | Add a comment |
+| POST | `/:slugOrId/comments/:commentId/vote` | Vote on a comment |
+
+### Users (`/api/users`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/me` | Get current user profile |
+| PUT | `/me` | Update profile |
+| GET | `/leaderboard` | Get XP leaderboard |
+
+### Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+
+---
+
+## Gamification
+
+- **XP System** — Earn 10 XP per lesson completed, 50 XP per course completed
+- **Streaks** — Daily login streak tracking with longest streak record
+- **Badges** — Unlock badges like "First Course", "Quiz Master", "7-Day Streak"
+- **Leaderboard** — Global XP rankings visible to all users
+
+---
+
+## Screenshots
+
+> Add screenshots of your deployed application here.
+
+---
+
+## Authors
+
+- **Shikhar**
+- **Mahek**
+
+## License
 
 Distributed under the MIT License. See `LICENSE` for details.
-
----
-
-✨ Thank you for exploring StudyHub! Let’s make learning smarter, together. ✨

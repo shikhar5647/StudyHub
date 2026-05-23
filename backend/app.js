@@ -58,12 +58,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ---------------- Session Middleware ----------------
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'keyboard cat', // change to a strong secret in prod
+  secret: process.env.SESSION_SECRET || 'keyboard cat',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // set true if using HTTPS
+  cookie: {
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+  },
 }));
+if (isProduction) app.set('trust proxy', 1);
 
 // ---------------- Passport ----------------
 app.use(passport.initialize());

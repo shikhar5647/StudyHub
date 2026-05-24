@@ -62,10 +62,6 @@ const CourseLearn = () => {
     [progress]
   );
 
-  const loadProgress = () =>
-    getCourseProgress(slug)
-      .then((res) => setProgress(res.data))
-      .catch(() => {});
 
   useEffect(() => {
     if (!getAccessToken()) {

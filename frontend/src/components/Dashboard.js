@@ -16,7 +16,7 @@ import AdminDashboard from './dashboard/AdminDashboard';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(getStoredUser());
-  const [enrolled, setEnrolled] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const Dashboard = () => {
         const meData = await meRes.json();
         if (!meRes.ok) throw new Error(meData.message || 'Failed to load profile');
         setUser(meData.data);
-        setEnrolled(enrolledRes.data || []);
+
       } catch (err) {
         toast.error(err.message);
         clearAuthSession();

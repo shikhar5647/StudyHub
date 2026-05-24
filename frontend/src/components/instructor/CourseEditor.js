@@ -84,7 +84,7 @@ const CourseEditor = () => {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(courseToForm(null));
-  const [courseId, setCourseId] = useState(null);
+
 
   useEffect(() => {
     if (!isEdit) return;
@@ -103,7 +103,7 @@ const CourseEditor = () => {
           return;
         }
         setForm(courseToForm(course));
-        setCourseId(course._id);
+
       })
       .catch((err) => {
         toast.error(err.message);

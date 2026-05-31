@@ -23,6 +23,7 @@ const {
   setLastLesson,
 } = require('../controllers/progressController');
 const { downloadCertificate } = require('../controllers/certificateController');
+const { sendMessage: chatSendMessage } = require('../controllers/chatController');
 
 const optionalAuth = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -93,6 +94,13 @@ router.get(
   protect,
   requireRole('student'),
   downloadCertificate
+);
+
+router.post(
+  '/:slugOrId/chat',
+  protect,
+  requireRole('student'),
+  chatSendMessage
 );
 
 router.get('/:slugOrId', optionalAuth, getCourse);

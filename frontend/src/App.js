@@ -25,6 +25,8 @@ import VerifyEmail from './components/VerifyEmail';
 import DiscussionList from './components/DiscussionList';
 import DiscussionDetail from './components/DiscussionDetail';
 import CreateDiscussion from './components/CreateDiscussion';
+import StudentAnalytics from './components/StudentAnalytics';
+import InstructorAnalytics from './components/InstructorAnalytics';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
@@ -73,6 +75,31 @@ function App() {
               }
             />
             <Route path="/discussions/:slug" element={<DiscussionDetail />} />
+
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <StudentAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/instructor/analytics"
+              element={
+                <ProtectedRoute roles={['instructor', 'admin']}>
+                  <InstructorAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/instructor/analytics/:slug"
+              element={
+                <ProtectedRoute roles={['instructor', 'admin']}>
+                  <InstructorAnalytics />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/dashboard"

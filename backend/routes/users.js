@@ -12,10 +12,15 @@ const {
   createNote,
   deleteNote
 } = require('../controllers/userController');
+const { getStudentAnalytics, getInstructorOverview } = require('../controllers/analyticsController');
 
 router.get('/roles', getSignupRoles);
 router.get('/me/profile', protect, getMyProfile);
 router.get('/leaderboard', getLeaderboard); // Gamification Leaderboard
+
+// Analytics routes
+router.get('/me/analytics', protect, getStudentAnalytics);
+router.get('/me/instructor-analytics', protect, requireRole('instructor', 'admin'), getInstructorOverview);
 
 // Notes routes
 router.get('/me/notes', protect, getNotes);

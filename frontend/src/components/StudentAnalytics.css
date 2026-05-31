@@ -1,0 +1,488 @@
+/* ══════════════════════════════════════
+   Analytics Dashboard — Light & Dark Mode
+   ══════════════════════════════════════ */
+
+/* ── CSS Variables ── */
+:root {
+  --analytics-bg: #f8f9fa;
+  --analytics-card-bg: #ffffff;
+  --analytics-card-border: #e9ecef;
+  --analytics-text: #2d3436;
+  --analytics-text-muted: #636e72;
+  --analytics-heading: #1a1a2e;
+  --chart-grid: #e0e0e0;
+  --chart-text: #636e72;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e0e0e0;
+  --heatmap-empty: #ebedf0;
+  --heatmap-l1: #c6e48b;
+  --heatmap-l2: #7bc96f;
+  --heatmap-l3: #239a3b;
+  --heatmap-l4: #196127;
+  --stat-card-bg: #ffffff;
+  --progress-bg: #e9ecef;
+  --progress-fill: #6c5ce7;
+  --table-hover: #f1f3f5;
+  --badge-bg: #e8e5ff;
+  --badge-text: #6c5ce7;
+}
+
+[data-theme='dark'] {
+  --analytics-bg: #0d1117;
+  --analytics-card-bg: #161b22;
+  --analytics-card-border: #30363d;
+  --analytics-text: #c9d1d9;
+  --analytics-text-muted: #8b949e;
+  --analytics-heading: #f0f6fc;
+  --chart-grid: #30363d;
+  --chart-text: #8b949e;
+  --chart-tooltip-bg: #1c2128;
+  --chart-tooltip-border: #30363d;
+  --heatmap-empty: #161b22;
+  --heatmap-l1: #0e4429;
+  --heatmap-l2: #006d32;
+  --heatmap-l3: #26a641;
+  --heatmap-l4: #39d353;
+  --stat-card-bg: #161b22;
+  --progress-bg: #30363d;
+  --progress-fill: #8b7cf7;
+  --table-hover: #1c2128;
+  --badge-bg: #2d2654;
+  --badge-text: #a78bfa;
+}
+
+/* ── Page Layout ── */
+.analytics-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: var(--analytics-text);
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.analytics-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--analytics-heading);
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.analytics-subtitle {
+  color: var(--analytics-text-muted);
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+}
+
+/* ── Loading / Error ── */
+.analytics-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: var(--analytics-text-muted);
+}
+
+.analytics-error {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--analytics-text);
+}
+
+/* ── Stat Cards Grid ── */
+.analytics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.analytics-stat-card {
+  background: var(--stat-card-bg);
+  border: 1px solid var(--analytics-card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.analytics-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--badge-bg);
+  flex-shrink: 0;
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--analytics-heading);
+  line-height: 1.2;
+}
+
+.stat-card-label {
+  font-size: 0.82rem;
+  color: var(--analytics-text-muted);
+  font-weight: 500;
+}
+
+.stat-card-sub {
+  font-size: 0.75rem;
+  color: var(--analytics-text-muted);
+  margin-top: 2px;
+}
+
+/* ── Cards ── */
+.analytics-card {
+  background: var(--analytics-card-bg);
+  border: 1px solid var(--analytics-card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.analytics-card-full {
+  width: 100%;
+}
+
+.analytics-card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.analytics-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--analytics-heading);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.analytics-card-desc {
+  font-size: 0.85rem;
+  color: var(--analytics-text-muted);
+  margin-bottom: 1rem;
+}
+
+.analytics-charts-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.analytics-charts-row > .analytics-card {
+  flex: 1;
+  min-width: 320px;
+  margin-bottom: 0;
+}
+
+.analytics-empty-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--analytics-text-muted);
+}
+
+/* ── Heatmap ── */
+.heatmap-container {
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.heatmap-months {
+  display: flex;
+  gap: 0;
+  padding-left: 28px;
+  margin-bottom: 4px;
+}
+
+.heatmap-month-label {
+  flex: 1;
+  font-size: 10px;
+  color: var(--analytics-text-muted);
+  text-align: center;
+}
+
+.heatmap-svg {
+  display: block;
+}
+
+.heatmap-cell {
+  transition: opacity 0.15s;
+  cursor: pointer;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+  stroke: var(--analytics-heading);
+  stroke-width: 1;
+}
+
+.heatmap-day-label {
+  fill: var(--analytics-text-muted);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--analytics-text-muted);
+}
+
+.heatmap-legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* ── Progress Bar ── */
+.analytics-progress-bar {
+  width: 100%;
+  max-width: 180px;
+  height: 22px;
+  background: var(--progress-bg);
+  border-radius: 11px;
+  overflow: hidden;
+  position: relative;
+}
+
+.analytics-progress-fill {
+  height: 100%;
+  background: var(--progress-fill);
+  border-radius: 11px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.analytics-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--analytics-text);
+}
+
+/* ── Table ── */
+.analytics-table-wrapper {
+  overflow-x: auto;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.analytics-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--analytics-card-border);
+  color: var(--analytics-text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analytics-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--analytics-card-border);
+  color: var(--analytics-text);
+  vertical-align: middle;
+}
+
+.analytics-table tbody tr:hover {
+  background: var(--table-hover);
+}
+
+.analytics-table-sm td,
+.analytics-table-sm th {
+  padding: 0.5rem 0.75rem;
+}
+
+.analytics-course-link {
+  color: var(--progress-fill);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.analytics-course-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Badges ── */
+.analytics-badge {
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.analytics-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.analytics-status-complete {
+  background: rgba(0, 184, 148, 0.15);
+  color: #00b894;
+}
+
+.analytics-status-progress {
+  background: rgba(108, 92, 231, 0.15);
+  color: #6c5ce7;
+}
+
+/* ── Earned Badges Grid ── */
+.analytics-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.analytics-badge-item {
+  text-align: center;
+  padding: 1rem 0.5rem;
+  border-radius: 12px;
+  background: var(--badge-bg);
+  transition: transform 0.2s;
+}
+
+.analytics-badge-item:hover {
+  transform: scale(1.05);
+}
+
+.analytics-badge-icon {
+  color: var(--badge-text);
+  margin-bottom: 0.5rem;
+}
+
+.analytics-badge-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--analytics-heading);
+}
+
+.analytics-badge-date {
+  font-size: 0.7rem;
+  color: var(--analytics-text-muted);
+  margin-top: 2px;
+}
+
+/* ── Gauge ── */
+.gauge-container {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.gauge-label {
+  font-size: 0.85rem;
+  color: var(--analytics-text-muted);
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .analytics-page {
+    padding: 1rem;
+  }
+
+  .analytics-title {
+    font-size: 1.4rem;
+  }
+
+  .analytics-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-charts-row {
+    flex-direction: column;
+  }
+
+  .analytics-charts-row > .analytics-card {
+    min-width: 100%;
+  }
+
+  .analytics-stat-card {
+    padding: 1rem;
+  }
+
+  .stat-card-value {
+    font-size: 1.2rem;
+  }
+
+  .heatmap-container {
+    overflow-x: scroll;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-header {
+    flex-direction: column;
+  }
+
+  .analytics-badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Recharts dark-mode text fix ── */
+[data-theme='dark'] .recharts-text {
+  fill: var(--chart-text) !important;
+}
+
+[data-theme='dark'] .recharts-cartesian-axis-tick-value {
+  fill: var(--chart-text) !important;
+}
+
+[data-theme='dark'] .recharts-legend-item-text {
+  color: var(--chart-text) !important;
+}
+
+[data-theme='dark'] .recharts-default-tooltip {
+  background-color: var(--chart-tooltip-bg) !important;
+  border-color: var(--chart-tooltip-border) !important;
+}

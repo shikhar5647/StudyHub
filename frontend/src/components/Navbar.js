@@ -88,6 +88,13 @@ const Navbar = () => {
                   Leaderboard
                 </Link>
               </li>
+              {isLoggedIn && (
+                <li className="nav-item">
+                  <Link className="nav-link" to={user?.role === 'instructor' || user?.role === 'admin' ? '/instructor/analytics' : '/analytics'}>
+                    Analytics
+                  </Link>
+                </li>
+              )}
               <li className="nav-item dropdown">
                 <button
                   type="button"

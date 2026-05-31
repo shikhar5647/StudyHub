@@ -1,5 +1,6 @@
 const Course = require('../models/Course');
 const User = require('../models/User');
+const StudyActivity = require('../models/StudyActivity');
 const asyncHandler = require('../middleware/asyncHandler');
 const { sendCourseCompletionEmail } = require('../services/emailService');
 
@@ -204,6 +205,34 @@ const markLessonComplete = asyncHandler(async (req, res) => {
   const { xpGained, newBadges } = updateGamification(user, isNewComplete, justCompleted, lessonType);
 
   await user.save();
+
+  // ── Track study activity for analytics ──
+  if (isNewComplete) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const updateFields = {
+      $inc: {
+        lessonsCompleted: 1,
+        xpEarned: xpGained,
+        studyDurationMin: lessonType === 'video' ? 15 : lessonType === 'quiz' ? 10 : 5,
+      },
+    };
+
+    // Increment the specific lesson type counter
+    if (['video', 'note', 'quiz', 'assignment'].includes(lessonType)) {
+      updateFields.$inc[`lessonTypes.${lessonType}`] = 1;
+    }
+    if (lessonType === 'quiz') {
+      updateFields.$inc.quizzesTaken = 1;
+    }
+
+    StudyActivity.findOneAndUpdate(
+      { user: req.user._id, course: course._id, date: today },
+      updateFields,
+      { upsert: true, new: true }
+    ).catch((err) => console.error('Failed to track study activity:', err.message));
+  }
 
   if (justCompleted) {
     sendCourseCompletionEmail(user.email, user.name, course.title, course.slug).catch(

@@ -15,6 +15,7 @@ Built with React, Node.js, Express, and MongoDB.
 - **Progress Tracking** — Track completed lessons with a visual progress bar and resume where you left off
 - **Certificates** — Download a PDF certificate with the StudyHub logo upon completing all lessons in a course
 - **Discussion Forum** — Post questions, reply with threaded comments, upvote/downvote, and accept answers (inspired by LeetCode Discuss)
+- **AI Study Assistant** — Gemini-powered chatbot embedded in each course, context-aware of lessons and course content, with markdown rendering and suggested prompts
 - **Notes Panel** — Take personal notes while learning
 - **Leaderboard** — XP-based rankings with streak tracking and badges
 - **Dark Mode** — Toggle between light and dark themes, persisted across sessions
@@ -45,6 +46,7 @@ Built with React, Node.js, Express, and MongoDB.
 | Backend | Node.js, Express 4, Passport.js (Local + Google OAuth) |
 | Database | MongoDB Atlas with Mongoose ODM |
 | File Storage | Supabase Storage |
+| AI | Google Gemini 2.0 Flash (@google/generative-ai) |
 | PDF Generation | PDFKit |
 | Email | Nodemailer (Gmail / SMTP) |
 | Auth | JWT (access + refresh tokens), bcrypt |
@@ -119,6 +121,9 @@ JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES=15m
 SESSION_SECRET=your_session_secret
 FRONTEND_URL=http://localhost:3001
+
+# Gemini AI (for AI Study Assistant)
+GEMINI_API_KEY=your_gemini_api_key
 
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -217,6 +222,7 @@ This starts MongoDB, the backend API, and the frontend in containers.
 | GET | `/:slugOrId/certificate` | Download completion certificate (student) |
 | GET | `/:slugOrId/progress` | Get course progress (student) |
 | POST | `/:slugOrId/progress/lessons/:lessonId/complete` | Mark lesson complete |
+| POST | `/:slugOrId/chat` | Send a message to the AI study assistant |
 
 ### Discussions (`/api/discussions`)
 | Method | Endpoint | Description |

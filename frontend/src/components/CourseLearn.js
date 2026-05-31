@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { FaArrowLeft, FaCheckCircle, FaCircle } from 'react-icons/fa';
 import FlashcardQuiz from './FlashcardQuiz';
 import NotesPanel from './NotesPanel';
+import AIChatBot from './AIChatBot';
 import { getCourse } from '../api/courses';
 import {
   getCourseProgress,
@@ -269,6 +270,13 @@ const CourseLearn = () => {
           )}
         </div>
       </div>
+
+      <AIChatBot
+        courseSlug={slug}
+        courseTitle={course.title}
+        currentLessonId={active?.key}
+        currentLessonTitle={active?.lesson?.title}
+      />
     </div>
   );
 };

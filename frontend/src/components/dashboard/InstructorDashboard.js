@@ -29,6 +29,9 @@ const InstructorDashboard = ({ user, onLogout }) => {
         <Link to="/instructor/courses" className="btn btn-primary">
           Manage courses
         </Link>
+        <Link to="/instructor/analytics" className="btn btn-outline-info">
+          Analytics
+        </Link>
         <Link to="/storage" className="btn btn-outline-primary">
           Storage
         </Link>

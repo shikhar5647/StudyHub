@@ -27,6 +27,9 @@ const StudentDashboard = ({ user, onLogout }) => {
         <Link to="/courses" className="btn btn-primary">
           Browse courses
         </Link>
+        <Link to="/analytics" className="btn btn-outline-primary">
+          Study Analytics
+        </Link>
         <Link to="/profile" className="btn btn-outline-secondary">
           My profile
         </Link>

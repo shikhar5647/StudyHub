@@ -24,6 +24,7 @@ const {
 } = require('../controllers/progressController');
 const { downloadCertificate } = require('../controllers/certificateController');
 const { sendMessage: chatSendMessage } = require('../controllers/chatController');
+const { getCourseAnalytics } = require('../controllers/analyticsController');
 
 const optionalAuth = async (req, res, next) => {
   const header = req.headers.authorization;
@@ -101,6 +102,13 @@ router.post(
   protect,
   requireRole('student'),
   chatSendMessage
+);
+
+router.get(
+  '/:slugOrId/analytics',
+  protect,
+  requireRole('instructor', 'admin'),
+  getCourseAnalytics
 );
 
 router.get('/:slugOrId', optionalAuth, getCourse);

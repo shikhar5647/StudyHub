@@ -267,8 +267,8 @@ This starts MongoDB, the backend API, and the frontend in containers.
 
 ## Authors
 
-- **Shikhar**
-- **Mahek**
+- **Shikhar Dave**
+- **Mahek Vanjani**
 
 ## License
 

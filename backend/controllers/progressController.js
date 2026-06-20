@@ -53,6 +53,9 @@ function updateGamification(user, isNewComplete, justFinishedCourse, lessonType)
 }
 
 function countLessons(course) {
+  if (course.metadata && typeof course.metadata.totalLessons === 'number') {
+    return course.metadata.totalLessons;
+  }
   let n = 0;
   (course.modules || []).forEach((m) => {
     n += (m.lessons || []).length;

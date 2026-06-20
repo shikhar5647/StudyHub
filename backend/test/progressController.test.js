@@ -1,11 +1,13 @@
 const { buildProgressPayload } = require('../controllers/progressController');
 
 describe('buildProgressPayload', () => {
-  it('falls back to module lesson count when metadata.totalLessons is NaN', () => {
+  it.each([NaN, Infinity, -Infinity, -1])(
+    'falls back to module lesson count when metadata.totalLessons is %p',
+    (totalLessons) => {
     const course = {
       _id: 'course-1',
       slug: 'course-1',
-      metadata: { totalLessons: NaN },
+      metadata: { totalLessons },
       modules: [{ lessons: [{ _id: 'l1' }, { _id: 'l2' }] }],
     };
     const entry = { completedLessonIds: ['l1'] };
@@ -14,7 +16,8 @@ describe('buildProgressPayload', () => {
 
     expect(payload.totalLessons).toBe(2);
     expect(payload.percentComplete).toBe(50);
-  });
+    }
+  );
 
   it('uses metadata.totalLessons when it is finite and non-negative', () => {
     const course = {

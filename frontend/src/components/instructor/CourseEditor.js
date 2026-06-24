@@ -328,7 +328,7 @@ const CourseEditor = () => {
                 />
               </div>
               <div className="col-md-4">
-                <label className="form-label">Price ($)</label>
+                <label className="form-label">Price (₹ INR)</label>
                 <input
                   type="number"
                   min="0"

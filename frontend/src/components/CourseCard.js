@@ -68,15 +68,22 @@ const CourseCard = ({ course, isEnrolled = false, showEnroll = false }) => {
               ? `${course.description.slice(0, 120)}…`
               : course.description}
           </p>
-          <p className="small text-muted mb-2">
-            {lessons > 0 && `${lessons} lesson${lessons !== 1 ? 's' : ''}`}
-            {duration && ` · ${duration}`}
-            {course.enrolledCount > 0 && ` · ${course.enrolledCount} enrolled`}
-          </p>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <p className="small text-muted mb-0">
+              {lessons > 0 && `${lessons} lesson${lessons !== 1 ? 's' : ''}`}
+              {duration && ` · ${duration}`}
+              {course.enrolledCount > 0 && ` · ${course.enrolledCount} enrolled`}
+            </p>
+            <span className={`badge ${course.price > 0 ? 'bg-primary' : 'bg-success'}`}>
+              {course.price > 0 ? `₹${course.price}` : 'Free'}
+            </span>
+          </div>
           <div className="d-grid gap-2">
             {showEnroll ? (
               <EnrollButton
                 courseSlug={course.slug}
+                coursePrice={course.price || 0}
+                courseName={course.title}
                 isEnrolled={isEnrolled}
                 className="w-100"
                 onEnrolled={() => window.location.reload()}

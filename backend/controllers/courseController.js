@@ -1,5 +1,6 @@
 const Course = require('../models/Course');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
 const asyncHandler = require('../middleware/asyncHandler');
 const { sendEnrollmentEmail } = require('../services/emailService');
 
@@ -237,6 +238,22 @@ const enrollCourse = asyncHandler(async (req, res) => {
       success: false,
       message: 'You are already enrolled in this course',
     });
+  }
+
+  // Block enrollment for paid courses without completed payment
+  if (course.price && course.price > 0) {
+    const paidPayment = await Payment.findOne({
+      user: req.user._id,
+      course: course._id,
+      status: 'paid',
+    });
+    if (!paidPayment) {
+      return res.status(402).json({
+        success: false,
+        message: 'Payment required to enroll in this course',
+        data: { price: course.price, currency: 'INR' },
+      });
+    }
   }
 
   user.enrolledCourses.push(course._id);

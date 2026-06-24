@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { enrollInCourse } from '../api/courses';
+import { createOrder, verifyPayment, checkPaymentStatus } from '../api/payments';
 import { getAccessToken, getStoredUser } from '../utils/auth';
 import { isStudent } from '../utils/rbac';
 
-/**
- * Reusable enroll CTA — works on course cards and detail pages.
- */
 const EnrollButton = ({
   courseSlug,
+  coursePrice = 0,
+  courseName = '',
   isEnrolled = false,
   size = 'sm',
   className = '',
@@ -18,8 +18,68 @@ const EnrollButton = ({
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const user = getStoredUser();
   const token = getAccessToken();
+
+  const isPaid = coursePrice > 0;
+
+  useEffect(() => {
+    if (token && isStudent(user) && isPaid && !isEnrolled) {
+      checkPaymentStatus(courseSlug)
+        .then((res) => setPaymentStatus(res.data))
+        .catch(() => {});
+    }
+  }, [courseSlug, token, isPaid, isEnrolled]);
+
+  const handleRazorpayCheckout = async () => {
+    setLoading(true);
+    try {
+      const orderRes = await createOrder(courseSlug);
+      const { orderId, amount, currency, keyId, courseName: name } = orderRes.data;
+
+      const options = {
+        key: keyId,
+        amount,
+        currency,
+        name: 'StudyHub',
+        description: `Enroll in ${name}`,
+        order_id: orderId,
+        handler: async (response) => {
+          try {
+            await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              courseSlug,
+            });
+            toast.success('Payment successful! You are now enrolled.');
+            onEnrolled?.();
+          } catch (err) {
+            toast.error(err.message || 'Payment verification failed');
+          }
+        },
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+        },
+        theme: { color: '#6a11cb' },
+        modal: {
+          ondismiss: () => setLoading(false),
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', (response) => {
+        toast.error(response.error?.description || 'Payment failed');
+        setLoading(false);
+      });
+      rzp.open();
+    } catch (err) {
+      toast.error(err.message || 'Could not initiate payment');
+      setLoading(false);
+    }
+  };
 
   const handleEnroll = async (e) => {
     e?.preventDefault();
@@ -41,13 +101,22 @@ const EnrollButton = ({
       return;
     }
 
+    if (isPaid && !(paymentStatus?.hasPaid)) {
+      handleRazorpayCheckout();
+      return;
+    }
+
     setLoading(true);
     try {
       await enrollInCourse(courseSlug);
       toast.success('You joined this course!');
       onEnrolled?.();
     } catch (err) {
-      toast.error(err.message || 'Could not enroll');
+      if (err.message === 'Payment required to enroll in this course') {
+        handleRazorpayCheckout();
+      } else {
+        toast.error(err.message || 'Could not enroll');
+      }
     } finally {
       setLoading(false);
     }
@@ -84,6 +153,14 @@ const EnrollButton = ({
     );
   }
 
+  const label = loading
+    ? 'Processing…'
+    : isEnrolled
+      ? 'Go to course'
+      : isPaid
+        ? `Enroll — ₹${coursePrice}`
+        : 'Enroll for free';
+
   return (
     <button
       type="button"
@@ -91,7 +168,7 @@ const EnrollButton = ({
       disabled={loading}
       onClick={handleEnroll}
     >
-      {loading ? 'Joining…' : isEnrolled ? 'Go to course' : 'Enroll for free'}
+      {label}
     </button>
   );
 };

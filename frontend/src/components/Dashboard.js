@@ -29,7 +29,7 @@ const Dashboard = () => {
 
     const load = async () => {
       try {
-        const [meRes, enrolledRes] = await Promise.all([
+        const [meRes] = await Promise.all([
           fetch(`${API_BASE}/api/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           }),

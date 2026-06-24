@@ -30,6 +30,7 @@ const EnrollButton = ({
         .then((res) => setPaymentStatus(res.data))
         .catch(() => {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseSlug, token, isPaid, isEnrolled]);
 
   const handleRazorpayCheckout = async () => {

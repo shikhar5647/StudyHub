@@ -62,6 +62,7 @@ const CourseDetail = () => {
     if (searchParams.get('enroll') === '1' && user && isStudent(user) && !enrolled && !loading) {
       toast.info(course?.price > 0 ? 'Click Enroll to join this course' : 'Click Enroll for free to join this course');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user, enrolled, loading]);
 
   const handleUnenroll = async () => {

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  AreaChart, Area, FunnelChart, Funnel, LabelList,
+  AreaChart, Area,
 } from 'recharts';
 import {
   FaChartBar, FaUsers, FaStar, FaBookOpen, FaArrowLeft,
@@ -81,13 +81,6 @@ const CourseAnalyticsDetail = ({ slug }) => {
   const lessonTypeData = Object.entries(lessonTypeDist)
     .map(([type, count]) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), value: count }))
     .filter((d) => d.value > 0);
-
-  // Build funnel from drop-off data
-  const funnelData = (dropOff || []).slice(0, 10).map((d, i) => ({
-    name: d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title,
-    value: d.completionRate,
-    fill: COLORS[i % COLORS.length],
-  }));
 
   return (
     <>

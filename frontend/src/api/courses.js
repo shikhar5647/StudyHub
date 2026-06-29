@@ -1,10 +1,5 @@
 import { API_BASE } from '../config/api';
-import { getAccessToken } from '../utils/auth';
-
-function authHeaders() {
-  const token = getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import { authFetch } from '../utils/auth';
 
 async function parseJson(res) {
   const text = await res.text();
@@ -37,9 +32,7 @@ export function listCourses(params = {}) {
 }
 
 export function getCourse(slug) {
-  return fetch(`${API_BASE}/api/courses/${slug}`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/courses/${slug}`).then(parseJson);
 }
 
 export function listCategories() {
@@ -47,50 +40,45 @@ export function listCategories() {
 }
 
 export function getMyEnrolledCourses() {
-  return fetch(`${API_BASE}/api/courses/my/enrolled`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/courses/my/enrolled`).then(parseJson);
 }
 
 export function enrollInCourse(slug) {
-  return fetch(`${API_BASE}/api/courses/${slug}/enroll`, {
+  return authFetch(`${API_BASE}/api/courses/${slug}/enroll`, {
     method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   }).then(parseJson);
 }
 
 export function unenrollFromCourse(slug) {
-  return fetch(`${API_BASE}/api/courses/${slug}/unenroll`, {
+  return authFetch(`${API_BASE}/api/courses/${slug}/unenroll`, {
     method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   }).then(parseJson);
 }
 
 export function getMyCreatedCourses() {
-  return fetch(`${API_BASE}/api/courses/my/created`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/courses/my/created`).then(parseJson);
 }
 
 export function createCourse(payload) {
-  return fetch(`${API_BASE}/api/courses`, {
+  return authFetch(`${API_BASE}/api/courses`, {
     method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }).then(parseJson);
 }
 
 export function updateCourse(slugOrId, payload) {
-  return fetch(`${API_BASE}/api/courses/${slugOrId}`, {
+  return authFetch(`${API_BASE}/api/courses/${slugOrId}`, {
     method: 'PUT',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }).then(parseJson);
 }
 
 export function deleteCourse(slugOrId) {
-  return fetch(`${API_BASE}/api/courses/${slugOrId}`, {
+  return authFetch(`${API_BASE}/api/courses/${slugOrId}`, {
     method: 'DELETE',
-    headers: authHeaders(),
   }).then(parseJson);
 }

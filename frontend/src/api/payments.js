@@ -1,12 +1,5 @@
 import { API_BASE } from '../config/api';
-import { getAccessToken } from '../utils/auth';
-
-function authHeaders(json = true) {
-  const token = getAccessToken();
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  if (json) headers['Content-Type'] = 'application/json';
-  return headers;
-}
+import { authFetch } from '../utils/auth';
 
 async function parseJson(res) {
   const data = await res.json();
@@ -15,29 +8,25 @@ async function parseJson(res) {
 }
 
 export function createOrder(courseSlug) {
-  return fetch(`${API_BASE}/api/payments/create-order`, {
+  return authFetch(`${API_BASE}/api/payments/create-order`, {
     method: 'POST',
-    headers: authHeaders(),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ courseSlug }),
   }).then(parseJson);
 }
 
 export function verifyPayment(payload) {
-  return fetch(`${API_BASE}/api/payments/verify`, {
+  return authFetch(`${API_BASE}/api/payments/verify`, {
     method: 'POST',
-    headers: authHeaders(),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }).then(parseJson);
 }
 
 export function getMyPayments() {
-  return fetch(`${API_BASE}/api/payments/my`, {
-    headers: authHeaders(false),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/payments/my`).then(parseJson);
 }
 
 export function checkPaymentStatus(courseSlug) {
-  return fetch(`${API_BASE}/api/payments/check/${courseSlug}`, {
-    headers: authHeaders(false),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/payments/check/${courseSlug}`).then(parseJson);
 }

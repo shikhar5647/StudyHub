@@ -1,10 +1,5 @@
 import { API_BASE } from '../config/api';
-import { getAccessToken } from '../utils/auth';
-
-function authHeaders() {
-  const token = getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import { authFetch } from '../utils/auth';
 
 async function parseJson(res) {
   const data = await res.json();
@@ -13,19 +8,13 @@ async function parseJson(res) {
 }
 
 export function getStudentAnalytics() {
-  return fetch(`${API_BASE}/api/users/me/analytics`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/users/me/analytics`).then(parseJson);
 }
 
 export function getInstructorOverview() {
-  return fetch(`${API_BASE}/api/users/me/instructor-analytics`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/users/me/instructor-analytics`).then(parseJson);
 }
 
 export function getCourseAnalytics(slugOrId) {
-  return fetch(`${API_BASE}/api/courses/${slugOrId}/analytics`, {
-    headers: authHeaders(),
-  }).then(parseJson);
+  return authFetch(`${API_BASE}/api/courses/${slugOrId}/analytics`).then(parseJson);
 }

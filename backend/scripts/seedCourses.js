@@ -14,6 +14,7 @@ const sampleCourses = [
     category: 'Artificial Intelligence',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
+    price: 499,
     tags: ['ai', 'ml', 'python'],
     modules: [
       {
@@ -114,6 +115,7 @@ const sampleCourses = [
     category: 'Web Development',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=800',
+    price: 0,
     tags: ['html', 'css', 'javascript', 'react'],
     modules: [
       {
@@ -203,6 +205,7 @@ const sampleCourses = [
     category: 'Cyber Security',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800',
+    price: 399,
     tags: ['security', 'networking', 'ethical-hacking'],
     modules: [
       {
@@ -291,6 +294,7 @@ const sampleCourses = [
     category: 'Data Science',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
+    price: 499,
     tags: ['data', 'python', 'analytics', 'pandas'],
     modules: [
       {
@@ -379,6 +383,7 @@ const sampleCourses = [
     category: 'Cloud Computing',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1603732551658-5fabbafa84eb?w=800',
+    price: 299,
     tags: ['aws', 'cloud', 'devops'],
     modules: [
       {
@@ -467,6 +472,7 @@ const sampleCourses = [
     category: 'Game Development',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=800',
+    price: 349,
     tags: ['games', 'unity', 'c-sharp', 'game-design'],
     modules: [
       {
@@ -595,6 +601,7 @@ async function seed() {
       existing.modules = modules;
       existing.description = data.description;
       existing.tags = data.tags;
+      existing.price = data.price || 0;
       await existing.save();
       updated += 1;
       console.log(`Updated: ${existing.title}`);
@@ -605,7 +612,7 @@ async function seed() {
       ...data,
       modules,
       published: true,
-      price: 0,
+      price: data.price || 0,
       instructor: instructor._id,
     });
 

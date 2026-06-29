@@ -13,6 +13,12 @@ const errorHandler = (err, req, res, next) => {
     user: req.user ? req.user._id : 'Not authenticated'
   });
 
+  // Razorpay error extraction
+  if (err.error && err.error.description) {
+    error.message = err.error.description;
+    error.statusCode = err.statusCode || 400;
+  }
+
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
     const message = 'Resource not found';

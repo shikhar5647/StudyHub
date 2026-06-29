@@ -56,7 +56,7 @@ const createOrder = asyncHandler(async (req, res) => {
   const order = await rz.orders.create({
     amount: amountInPaise,
     currency: 'INR',
-    receipt: `course_${course._id}_user_${req.user._id}_${Date.now()}`,
+    receipt: `rcpt_${Date.now()}_${Math.floor(Math.random()*1000)}`,
     notes: {
       courseId: course._id.toString(),
       courseTitle: course.title,

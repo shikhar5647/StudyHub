@@ -52,18 +52,30 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const amountInPaise = Math.round(course.price * 100);
 
-  const rz = getRazorpay();
-  const order = await rz.orders.create({
-    amount: amountInPaise,
-    currency: 'INR',
-    receipt: `course_${course._id}_user_${req.user._id}_${Date.now()}`,
-    notes: {
-      courseId: course._id.toString(),
-      courseTitle: course.title,
-      userId: req.user._id.toString(),
-      userEmail: req.user.email,
-    },
-  });
+  let rz;
+  try {
+    rz = getRazorpay();
+  } catch (err) {
+    return res.status(503).json({ success: false, message: 'Payment service unavailable' });
+  }
+
+  let order;
+  try {
+    order = await rz.orders.create({
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `course_${course._id}_user_${req.user._id}_${Date.now()}`,
+      notes: {
+        courseId: course._id.toString(),
+        courseTitle: course.title,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+      },
+    });
+  } catch (err) {
+    console.error('Razorpay order creation failed:', err.message, err.statusCode, err.error);
+    return res.status(502).json({ success: false, message: 'Payment gateway error: ' + (err.error?.description || err.message) });
+  }
 
   await Payment.create({
     user: req.user._id,

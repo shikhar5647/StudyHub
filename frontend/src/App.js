@@ -28,7 +28,13 @@ import CreateDiscussion from './components/CreateDiscussion';
 import StudentAnalytics from './components/StudentAnalytics';
 import InstructorAnalytics from './components/InstructorAnalytics';
 import { ThemeProvider } from './context/ThemeContext';
+import { clearAuthSession } from './utils/auth';
 import './App.css';
+
+window.addEventListener('auth:expired', () => {
+  clearAuthSession();
+  window.location.href = '/login';
+});
 
 function App() {
   return (

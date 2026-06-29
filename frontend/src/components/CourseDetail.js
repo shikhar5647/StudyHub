@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { FaArrowLeft, FaBook, FaClock, FaPlay, FaUser, FaUsers } from 'react-icons/fa';
 import { getCourse, unenrollFromCourse } from '../api/courses';
 import { API_BASE } from '../config/api';
-import { getAccessToken, getStoredUser, saveAuthSession } from '../utils/auth';
+import { getAccessToken, getStoredUser, saveAuthSession, authFetch } from '../utils/auth';
 import { isAdmin, isInstructor, isStudent } from '../utils/rbac';
 import EnrollButton from './EnrollButton';
 
@@ -32,13 +32,11 @@ const CourseDetail = () => {
     try {
       const token = getAccessToken();
       if (token) {
-        const meRes = await fetch(`${API_BASE}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const meRes = await authFetch(`${API_BASE}/api/auth/me`);
         const meData = await meRes.json();
         if (meRes.ok) {
           setUser(meData.data);
-          saveAuthSession({ accessToken: token, user: meData.data });
+          saveAuthSession({ accessToken: getAccessToken(), user: meData.data });
         }
       }
 
